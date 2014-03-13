@@ -1,17 +1,15 @@
-/*
- * main.cpp
- *
- *  Created on: 12 mrt. 2014
- *      Author: Asus
- */
+//============================================================================
+// Name        : main.cpp
+// Author      :
+// Version     :
+// Copyright   :
+// Description :
+//============================================================================
 
-#include "main.h"
+#include <iostream>
+using namespace std;
 
-main::main() {
-
+int main() {
+	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+	return 0;
 }
-
-main::~main() {
-
-}
-
