@@ -17,6 +17,8 @@ class Server {
 public:
 	Server();
 	virtual ~Server();
+private:
+
 };
 
 #endif /* SERVER_H_ */

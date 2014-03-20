@@ -27,7 +27,7 @@ int main() {
 	if (status != 0)
 		cout << "getaddrinfo error" << gai_strerror(status) << endl;
 
-	cout << "Creating sockdet..." << endl;
+	cout << "Creating socket..." << endl;
 	int socketfd;
 	socketfd = socket(host_info_list->ai_family, host_info_list->ai_socktype, host_info_list->ai_protocol);
 	if(socketfd == -1)
