@@ -30,6 +30,8 @@ Server::~Server()
 void *Server::initt(void * arg)
 {
 	cout << "Fucking hell" << endl;
+	((Server *)arg)->init();
+	return 0;
 }
 
 void Server::init()
