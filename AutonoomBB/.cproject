@@ -111,10 +111,10 @@
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1310296754" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.mingw.base.1715607911" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.mingw.base"/>
-							<tool command="arm-none-linux-gnueabi-g++" id="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base.1559248287" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base">
+							<tool command="arm-none-linux-gnueabi-g++ -pthread" id="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base.1559248287" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base">
 								<option id="gnu.cpp.compiler.option.optimization.level.1524771285" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.779956354" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.include.files.1613963015" name="Include files (-include)" superClass="gnu.cpp.compiler.option.include.files" valueType="includeFiles"/>
+								<option id="gnu.cpp.compiler.option.include.files.1613963015" name="Include files (-include)" superClass="gnu.cpp.compiler.option.include.files"/>
 								<option id="gnu.cpp.compiler.option.include.paths.878148638" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_GNU_Linux\lib\gcc\arm-none-linux-gnueabi\4.6.1\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_GNU_Linux\arm-none-linux-gnueabi\libc\usr\include&quot;"/>
@@ -127,7 +127,7 @@
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1587783371" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.mingw.base.823075752" name="MinGW C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.mingw.base"/>
-							<tool command="arm-none-linux-gnueabi-g++" id="cdt.managedbuild.tool.gnu.cpp.linker.mingw.base.1379113477" name="MinGW C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.mingw.base">
+							<tool command="arm-none-linux-gnueabi-g++ -pthread" id="cdt.managedbuild.tool.gnu.cpp.linker.mingw.base.1379113477" name="MinGW C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.mingw.base">
 								<option id="gnu.cpp.link.option.paths.522205676" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_GNU_Linux\arm-none-linux-gnueabi\lib&quot;"/>
 								</option>
@@ -140,7 +140,7 @@
 					</folderInfo>
 					<fileInfo id="cdt.managedbuild.config.gnu.mingw.exe.debug.1771386711.1896310508.1519417127.304645953" name="main.cpp" rcbsApplicability="disable" resourcePath="main.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base.1559248287.1436143832">
 						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base.1559248287.1436143832" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base.1559248287">
-							<option id="gnu.cpp.compiler.option.include.paths.1286893966" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+							<option id="gnu.cpp.compiler.option.include.paths.1286893966" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 								<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_GNU_Linux\lib\gcc\arm-none-linux-gnueabi\4.6.1\include&quot;"/>
 								<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_GNU_Linux\arm-none-linux-gnueabi\libc\usr\include&quot;"/>
 								<listOptionValue builtIn="false" value="&quot;C:\Program Files (x86)\CodeSourcery\Sourcery_CodeBench_Lite_for_ARM_GNU_Linux\arm-none-linux-gnueabi\include\c++\4.6.1&quot;"/>

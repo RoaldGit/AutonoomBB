@@ -8,7 +8,6 @@
 #ifndef SERVER_H_
 #define SERVER_H_
 
-#include <sys/socket.h>
 #include <netdb.h>
 
 class Server {
@@ -16,6 +15,8 @@ public:
 	Server();
 	virtual ~Server();
 	void init();
+	static void *initt(void * arg);
+	void run();
 private:
 	int status,
 		socketfd;
