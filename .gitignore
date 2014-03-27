@@ -12,3 +12,5 @@
 *.la
 *.a
 \AutonoomBB\.project
+\AutonoomBB\.cproject
+\AutonoomBB\.settings\*

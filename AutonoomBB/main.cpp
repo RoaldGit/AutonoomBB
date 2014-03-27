@@ -7,7 +7,7 @@
 //============================================================================
 
 #include <iostream>
-#include "Server.h"
+#include "communication/server.h"
 #include <pthread.h>
 #include <unistd.h>
 
@@ -17,8 +17,10 @@ int main() {
 	Server *server = new Server();
 	pthread_t serverThread;
 
-	pthread_create(&serverThread, NULL, Server::initt, server);
+	pthread_create(&serverThread, NULL, server->start, server);
 	pthread_join(serverThread, NULL);
+	((Server *)serverThread)->init();
+
 	cout << "done" << endl;
 	//server->init();
 

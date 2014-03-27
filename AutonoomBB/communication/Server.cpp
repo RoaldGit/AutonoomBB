@@ -27,10 +27,9 @@ Server::~Server()
 
 }
 
-void *Server::initt(void * arg)
+void *Server::start(void * arg)
 {
-	cout << "Fucking hell" << endl;
-	((Server *)arg)->init();
+	cout << "Server thread started" << endl;
 	return 0;
 }
 
@@ -79,12 +78,12 @@ void Server::run()
 
 	while(true)
 	{
-		freeaddrinfo(host_info_list);
 		new_sd = accept(socketfd, (struct sockaddr *)&their_addr, &addr_size);
+
 		if (new_sd == -1)
 			cout << "listen error" << endl ;
 		else
-			cout << "Connection accepted. Using new socketfd : "  <<  new_sd << endl;
+			cout << "Connection accepted. Using new_sd: "  <<  new_sd << "\t socketfd: " << socketfd << endl;
 
 		assert(new_sd != -1);
 
@@ -96,6 +95,7 @@ void Server::run()
 		bytes_sent = send(new_sd, msg, len, 0);
 		cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
 
+		freeaddrinfo(host_info_list);
 		close(new_sd);
 	}
 

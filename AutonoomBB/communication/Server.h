@@ -15,7 +15,7 @@ public:
 	Server();
 	virtual ~Server();
 	void init();
-	static void *initt(void * arg);
+	static void *start(void * arg);
 	void run();
 private:
 	int status,
