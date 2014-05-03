@@ -11,6 +11,10 @@
 *.lai
 *.la
 *.a
-\AutonoomBB\.project
-\AutonoomBB\.cproject
-\AutonoomBB\.settings\*
+/AutonoomBB/.project
+/AutonoomBB/.cproject
+/AutonoomBB/.settings/*
+/AutonoomBB/.gitignore
+
+/**/.cproject
+*/.gitignore
