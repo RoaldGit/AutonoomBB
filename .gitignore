@@ -16,6 +16,6 @@
 /AutonoomBB/.settings/*
 /AutonoomBB/.gitignore
 
-/**/.cproject
-*/.gitignore
+.cproject
+.gitignore
 /AutonoomBB/Beagle/AutonoomBB.exe
