@@ -22,7 +22,7 @@ int main() {
 	((Server *)serverThread)->init();
 
 	cout << "done" << endl;
-	//server->init();
+	///server->init();
 
 	delete(server);
 
