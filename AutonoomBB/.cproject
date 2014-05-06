@@ -130,8 +130,11 @@
 									<listOptionValue builtIn="false" value="&quot;C:/Program Files (x86)/CodeSourcery/Sourcery_CodeBench_Lite_for_ARM_GNU_Linux/lib/gcc/arm-none-linux-gnueabi/4.6.1/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:/Program Files (x86)/CodeSourcery/Sourcery_CodeBench_Lite_for_ARM_GNU_Linux/arm-none-linux-gnueabi/libc/usr/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:/Program Files/CodeSourcery/Sourcery_CodeBench_Lite_for_ARM_GNU_Linux/arm-none-linux-gnueabi/include/c++/4.6.1&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\MinGW\mingw32\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\MinGW\lib\gcc\mingw32\4.8.1\include\c++&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\MinGW\lib\gcc\mingw32\4.8.1\include\c++\backward&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\MinGW\lib\gcc\mingw32\4.8.1\include-fixed&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.optimization.level.1526594667" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.2027839454" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
@@ -193,6 +196,9 @@
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1405510514;cdt.managedbuild.config.gnu.exe.debug.1405510514.;cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base.1888630191;cdt.managedbuild.tool.gnu.cpp.compiler.input.789114867">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
+		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.mingw.exe.debug.1771386711.1896310508.1519417127;cdt.managedbuild.config.gnu.mingw.exe.debug.1771386711.1896310508.1519417127.;cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base.1559248287;cdt.managedbuild.tool.gnu.cpp.compiler.input.1046042355">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
@@ -245,6 +251,9 @@
 					<parser enabled="true"/>
 				</scannerInfoProvider>
 			</profile>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1405510514;cdt.managedbuild.config.gnu.exe.debug.1405510514.;cdt.managedbuild.tool.gnu.c.compiler.mingw.base.1681532023;cdt.managedbuild.tool.gnu.c.compiler.input.722560511">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.mingw.exe.debug.1771386711.1896310508.1519417127;cdt.managedbuild.config.gnu.mingw.exe.debug.1771386711.1896310508.1519417127.;cdt.managedbuild.tool.gnu.cpp.compiler.mingw.base.1213095683;cdt.managedbuild.tool.gnu.cpp.compiler.input.796252708">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
