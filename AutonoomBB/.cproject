@@ -130,11 +130,6 @@
 									<listOptionValue builtIn="false" value="&quot;C:/Program Files (x86)/CodeSourcery/Sourcery_CodeBench_Lite_for_ARM_GNU_Linux/lib/gcc/arm-none-linux-gnueabi/4.6.1/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:/Program Files (x86)/CodeSourcery/Sourcery_CodeBench_Lite_for_ARM_GNU_Linux/arm-none-linux-gnueabi/libc/usr/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:/Program Files/CodeSourcery/Sourcery_CodeBench_Lite_for_ARM_GNU_Linux/arm-none-linux-gnueabi/include/c++/4.6.1&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\mingw32\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\lib\gcc\mingw32\4.8.1\include\c++&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\lib\gcc\mingw32\4.8.1\include\c++\backward&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\MinGW\lib\gcc\mingw32\4.8.1\include-fixed&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.optimization.level.1526594667" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.2027839454" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
