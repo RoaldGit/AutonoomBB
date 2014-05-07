@@ -15,8 +15,8 @@ using namespace std;
 
 int main() {
 	// Start the server
-	Server server = new Server();
-	server.start();
+	Server *server = new Server();
+	server->start();
 
 	// Delete the server instance
 	delete(server);

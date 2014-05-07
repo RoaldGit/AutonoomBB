@@ -39,7 +39,13 @@ void Server::start()
 	running = true;
 	cout << "Server thread started" << endl;
 
-	pthread_create(&serverThread, NULL, &Server::init, this);
+	pthread_create(&serverThread, NULL, &Server::startUp, this);
+}
+
+void *Server::startUp(void *server)
+{
+	reinterpret_cast<Server *>(server)->init();
+	return 0;
 }
 
 
@@ -56,10 +62,11 @@ void Server::stop()
 
 	// Wait for the run method to end
 	pthread_join(serverThread, NULL);
+	cout << "Server stopped" << endl;
 }
 
 // Setup the server
-void *Server::init()
+void Server::init()
 {
 	// Set all values in the struct to 0 (Memory block can contain random data)
 	memset(&host_info, 0, sizeof host_info);
