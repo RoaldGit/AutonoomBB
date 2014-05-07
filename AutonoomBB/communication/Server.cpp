@@ -20,7 +20,8 @@ using namespace std;
 
 // Constructor, initialize all private variables
 Server::Server()
-	:status(0), socketfd(0), host_info_list(0)
+	:status(0), socketfd(0), running(false), stopRequested(false),
+	 serverThread(0), host_info_list(0)
 {
 
 }
@@ -31,15 +32,34 @@ Server::~Server()
 
 }
 
-// Start function, required for the use of pthread_create
-void *Server::start(void *)
+// Start the server
+void Server::start()
 {
+	assert(running == false);
+	running = true;
 	cout << "Server thread started" << endl;
-	return 0;
+
+	pthread_create(&serverThread, NULL, &Server::init, this);
+}
+
+
+// Stop the server
+void Server::stop()
+{
+	// Server must be running
+	assert(running = true);
+
+	cout << "Stopping server..." << endl;
+
+	// Terminate while loop in the run method
+	stopRequested = true;
+
+	// Wait for the run method to end
+	pthread_join(serverThread, NULL);
 }
 
 // Setup the server
-void Server::init()
+void *Server::init()
 {
 	// Set all values in the struct to 0 (Memory block can contain random data)
 	memset(&host_info, 0, sizeof host_info);
@@ -93,7 +113,7 @@ void Server::run()
 	struct sockaddr_storage their_addr;
 	socklen_t addr_size = sizeof(their_addr);
 
-	while(true)
+	while(!stopRequested)
 	{
 		// Timeout value for recv()
 		struct timeval timeoutValue;
@@ -128,8 +148,6 @@ void Server::run()
 		// Close the socket descriptor
 		close(newSocket);
 	}
-
-	cout << "Stopping server..." << endl;
 
 	// Close the socket descriptor and free the memory used by the host info list
 	freeaddrinfo(host_info_list);
