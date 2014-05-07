@@ -10,6 +10,8 @@
 
 #define NDEBUG
 #define BUFFER_SIZE 1024
+#define FALSE 0
+#define TRUE 1
 
 using namespace std;
 
@@ -95,8 +97,7 @@ void Server::init()
 	cout << "Binding socket...." << endl;
 
 	// Allow the reuse of local addresses
-	int yes = 1;
-	status = setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+	status = setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &TRUE, sizeof(int));
 	status = bind(socketfd, host_info_list->ai_addr, host_info_list->ai_addrlen);
 	if(status == -1) cout << "binding error..." << endl;
 		assert(status != -1);
@@ -142,7 +143,7 @@ void Server::run()
 		if(received == 0) cout << "host shut down" << endl;
 		if(received == -1) cout << "recv error" << endl;
 
-		// Add end string caracter for printing, and print received message
+		// Add end string character for printing, and print received message
 		dataBuffer[received] = '\0';
 		cout << "Received " << received << " bytes|Message: " << dataBuffer << endl;
 
