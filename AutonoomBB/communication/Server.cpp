@@ -101,17 +101,17 @@ void Server::init()
 	cout << "Creating socket..." << endl;
 
 	// Create the socket
-	listenSocket = socket(host_info_list->ai_family, host_info_list->ai_socktype, host_info_list->ai_protocol);
-	if(listenSocket == -1) cout << "Socket creation error...." << endl;
-		assert(listenSocket != -1);
+	socketfd = socket(host_info_list->ai_family, host_info_list->ai_socktype, host_info_list->ai_protocol);
+	if(socketfd == -1) cout << "Socket creation error...." << endl;
+		assert(socketfd != -1);
 
 	cout << "Binding socket...." << endl;
 
 	// Allow the reuse of local addresses
 	int yes = 1;
-	setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+	setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
-	status = bind(listenSocket, host_info_list->ai_addr, host_info_list->ai_addrlen);
+	status = bind(socketfd, host_info_list->ai_addr, host_info_list->ai_addrlen);
 	if(status == -1) cout << "binding error..." << endl;
 		assert(status != -1);
 
@@ -125,7 +125,7 @@ void Server::run()
 	cout << "Listening for connections..."  << endl;
 
 	// Start listening for connections
-	status =  listen(listenSocket, 5);
+	status =  listen(socketfd, 5);
 	if (status == -1)  cout << "listen error" << endl ;
 		assert(status != -1);
 
@@ -141,7 +141,7 @@ void Server::run()
 		timeoutValue.tv_sec = SOCKET_TIMEOUT;
 
 		// Accept incoming connection and set timeout value (RCVTIMEO)
-		newSocket = accept(listenSocket, (struct sockaddr *)&their_addr, &addr_size);
+		newSocket = accept(socketfd, (struct sockaddr *)&their_addr, &addr_size);
 		status = setsockopt(newSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeoutValue, sizeof(struct timeval));
 
 		if (newSocket == -1) cout << "Accept returned " << errno << endl;
@@ -175,5 +175,5 @@ void Server::run()
 
 	// Close the socket descriptor and free the memory used by the host info list
 	freeaddrinfo(host_info_list);
-	close(listenSocket);
+	close(socketfd);
 }
