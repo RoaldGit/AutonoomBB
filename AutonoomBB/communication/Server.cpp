@@ -10,6 +10,7 @@
 #include <cstring>
 #include <sys/socket.h>
 #include <assert.h>
+#include <errno.h>
 
 #include "Server.h"
 
@@ -17,12 +18,13 @@
 #define BUFFER_SIZE 1024
 #define FALSE 0
 #define TRUE 1
+#define SOCKET_TIMEOUT 1
 
 using namespace std;
 
 // Constructor, initialize all private variables
 Server::Server()
-	:status(0), socketfd(0), running(false), stopRequested(false),
+	:status(0), listenSocket(0), running(false), stopRequested(false),
 	 serverThread(0), host_info_list(0)
 {
 
@@ -45,8 +47,7 @@ void Server::start()
 	cout << "Server thread started" << endl;
 
 	// Wait for the Thread to finish
-	pthread_join(serverThread, NULL);
-
+	//pthread_join(serverThread, NULL);
 }
 
 // Startup method, calls the init method of the server
@@ -54,7 +55,8 @@ void *Server::startUp(void *obj)
 {
 	// pthread_create passes the server reference (this) to the startup method. Cast to Server so that the init method
 	// can be called
-	Server *server = reinterpret_cast<Server *>(obj)->init();
+	Server *server = reinterpret_cast<Server *>(obj);
+	server->init();
 
 	return 0;
 }
@@ -99,16 +101,17 @@ void Server::init()
 	cout << "Creating socket..." << endl;
 
 	// Create the socket
-	socketfd = socket(host_info_list->ai_family, host_info_list->ai_socktype, host_info_list->ai_protocol);
-	if(socketfd == -1) cout << "Socket creation error...." << endl;
-		assert(socketfd != -1);
+	listenSocket = socket(host_info_list->ai_family, host_info_list->ai_socktype, host_info_list->ai_protocol);
+	if(listenSocket == -1) cout << "Socket creation error...." << endl;
+		assert(listenSocket != -1);
 
 	cout << "Binding socket...." << endl;
 
 	// Allow the reuse of local addresses
 	int yes = 1;
-	status = setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
-	status = bind(socketfd, host_info_list->ai_addr, host_info_list->ai_addrlen);
+	setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+
+	status = bind(listenSocket, host_info_list->ai_addr, host_info_list->ai_addrlen);
 	if(status == -1) cout << "binding error..." << endl;
 		assert(status != -1);
 
@@ -122,7 +125,7 @@ void Server::run()
 	cout << "Listening for connections..."  << endl;
 
 	// Start listening for connections
-	status =  listen(socketfd, 5);
+	status =  listen(listenSocket, 5);
 	if (status == -1)  cout << "listen error" << endl ;
 		assert(status != -1);
 
@@ -135,39 +138,42 @@ void Server::run()
 	{
 		// Timeout value for recv()
 		struct timeval timeoutValue;
-		timeoutValue.tv_sec = 30;
+		timeoutValue.tv_sec = SOCKET_TIMEOUT;
 
 		// Accept incoming connection and set timeout value (RCVTIMEO)
-		newSocket = accept(socketfd, (struct sockaddr *)&their_addr, &addr_size);
+		newSocket = accept(listenSocket, (struct sockaddr *)&their_addr, &addr_size);
 		status = setsockopt(newSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeoutValue, sizeof(struct timeval));
-		if (newSocket == -1) cout << "listen error" << endl;
-			assert(newSocket != -1);
 
-		// Bytes received and data buffer
-		ssize_t received;
-		char dataBuffer[BUFFER_SIZE];
+		if (newSocket == -1) cout << "Accept returned " << errno << endl;
+		/*else
+		{*/
 
-		// Receive message
-		received = recv(newSocket, dataBuffer, BUFFER_SIZE, 0);
-		cout << "send()ing back a message..."  << endl;
-		if(received == 0) cout << "host shut down" << endl;
-		if(received == -1) cout << "recv error" << endl;
+			// Bytes received and data buffer
+			ssize_t received;
+			char dataBuffer[BUFFER_SIZE];
 
-		// Add end string character for printing, and print received message
-		dataBuffer[received] = '\0';
-		cout << "Received " << received << " bytes|Message: " << dataBuffer << endl;
+			// Receive message
+			received = recv(newSocket, dataBuffer, BUFFER_SIZE, 0);
+			cout << "send()ing back a message..."  << endl;
+			if(received == 0) cout << "host shut down" << endl;
+			if(received == -1) cout << "recv error" << endl;
 
-		// Send a reply
-		char *msg = "Connected.\n";
-		ssize_t bytes_sent;
-		bytes_sent = send(newSocket, msg, strlen(msg), 0);
-		cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
+			// Add end string character for printing, and print received message
+			dataBuffer[received] = '\0';
+			cout << "Received " << received << " bytes|Message: " << dataBuffer << endl;
 
-		// Close the socket descriptor
-		close(newSocket);
+			// Send a reply
+			char *msg = "Connected.\n";
+			ssize_t bytes_sent;
+			bytes_sent = send(newSocket, msg, strlen(msg), 0);
+			cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
+
+			// Close the socket descriptor
+			close(newSocket);
+		//}
 	}
 
 	// Close the socket descriptor and free the memory used by the host info list
 	freeaddrinfo(host_info_list);
-	close(socketfd);
+	close(listenSocket);
 }

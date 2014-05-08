@@ -17,6 +17,7 @@ int main() {
 	// Start the server
 	Server *server = new Server();
 	server->start();
+	sleep(5);
 
 	// Delete the server instance
 	delete(server);

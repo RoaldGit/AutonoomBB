@@ -20,7 +20,7 @@ public:
 
 private:
 	int status,					// Used as storage for return values of functions
-		socketfd;				// The socket descriptor
+		listenSocket;				// The socket descriptor
 	bool running,				// Is the server running
 		stopRequested;			// Should the server stop
 	pthread_t serverThread;		// Thread
