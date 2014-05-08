@@ -7,12 +7,14 @@
 
 #include "SerialControl.h"
 
-SerialControl::SerialControl() {
-	// TODO Auto-generated constructor stub
+SerialControl::SerialControl()
+	:fileDescriptor(0), serialThread(0)
+{
 
 }
 
-SerialControl::~SerialControl() {
-	// TODO Auto-generated destructor stub
+SerialControl::~SerialControl()
+{
+
 }
 
