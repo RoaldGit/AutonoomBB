@@ -6,6 +6,11 @@
  *  Based on http://codebase.eu/tutorial/linux-socket-programming-c
  */
 
+#include <iostream>
+#include <cstring>
+#include <sys/socket.h>
+#include <assert.h>
+
 #include "Server.h"
 
 #define NDEBUG
@@ -14,11 +19,6 @@
 #define TRUE 1
 
 using namespace std;
-
-#include <iostream>
-#include <cstring>
-#include <sys/socket.h>
-#include <assert.h>
 
 // Constructor, initialize all private variables
 Server::Server()
@@ -97,7 +97,8 @@ void Server::init()
 	cout << "Binding socket...." << endl;
 
 	// Allow the reuse of local addresses
-	status = setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &TRUE, sizeof(int));
+	int yes = 1;
+	status = setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 	status = bind(socketfd, host_info_list->ai_addr, host_info_list->ai_addrlen);
 	if(status == -1) cout << "binding error..." << endl;
 		assert(status != -1);

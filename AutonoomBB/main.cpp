@@ -21,5 +21,7 @@ int main() {
 	// Delete the server instance
 	delete(server);
 
+	cout << "Done" << endl;
+
 	return 0;
 }
