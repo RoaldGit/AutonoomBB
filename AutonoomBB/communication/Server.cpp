@@ -39,14 +39,23 @@ void Server::start()
 {
 	assert(running == false);
 	running = true;
+
+	// Initialize the Thread
+	pthread_create(&serverThread, NULL, &Server::startUp, this);
 	cout << "Server thread started" << endl;
 
-	pthread_create(&serverThread, NULL, &Server::startUp, this);
+	// Wait for the Thread to finish
+	pthread_join(serverThread, NULL);
+
 }
 
-void *Server::startUp(void *server)
+// Startup method, calls the init method of the server
+void *Server::startUp(void *obj)
 {
-	reinterpret_cast<Server *>(server)->init();
+	// pthread_create passes the server reference (this) to the startup method. Cast to Server so that the init method
+	// can be called
+	Server *server = reinterpret_cast<Server *>(obj)->init();
+
 	return 0;
 }
 
@@ -55,7 +64,7 @@ void *Server::startUp(void *server)
 void Server::stop()
 {
 	// Server must be running
-	assert(running = true);
+	assert(running == true);
 
 	cout << "Stopping server..." << endl;
 
