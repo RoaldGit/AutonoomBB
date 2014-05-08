@@ -15,7 +15,7 @@ class Server {
 public:
 	Server();
 	virtual ~Server();
-	void start();
+	pthread_t start();
 	void stop();
 
 private:
