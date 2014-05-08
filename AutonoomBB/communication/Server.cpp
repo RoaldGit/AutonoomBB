@@ -15,7 +15,7 @@
 #include "Server.h"
 
 #define NDEBUG
-#define BUFFER_SIZE 1024
+#define TCP_BUFFER_SIZE 1024
 #define FALSE 0
 #define TRUE 1
 #define SOCKET_TIMEOUT 5
@@ -163,10 +163,10 @@ void Server::run()
 
 			// Bytes received and data buffer
 			ssize_t received;
-			char dataBuffer[BUFFER_SIZE];
+			char dataBuffer[TCP_BUFFER_SIZE];
 
 			// Receive message
-			received = recv(newSocket, dataBuffer, BUFFER_SIZE, 0);
+			received = recv(newSocket, dataBuffer, TCP_BUFFER_SIZE, 0);
 			cout << "sending back a message..."  << endl;
 			if(received == 0) cout << "host shut down" << endl;
 			if(received == -1) cout << "recv error" << endl;
