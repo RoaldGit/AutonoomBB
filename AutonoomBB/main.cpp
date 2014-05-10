@@ -10,7 +10,8 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#include "communication/server.h"
+#include "communication/Server.h"
+#include "communication/SerialControl.h"
 
 using namespace std;
 
@@ -18,6 +19,15 @@ int main() {
 	// Start the server
 	Server *server = new Server();
 	pthread_t serverThread = server->start();
+
+
+	SerialControl *serialTest = new SerialControl();
+	serialTest->setup();
+
+	sleep(20);
+	server->stop();
+
+
 
 	// Wait for the Thread to finish
 	pthread_join(serverThread, NULL);

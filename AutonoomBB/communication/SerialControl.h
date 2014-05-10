@@ -18,10 +18,11 @@ class SerialControl {
 public:
 	SerialControl();
 	virtual ~SerialControl();
-	pthread_t serialThread;
+	void restoreDefault();
+	void setup();
 private:
 	int fileDescriptor;		// Pointer to the device file
-
+	pthread_t serialThread;	//
 };
 
 #endif /* SERIALCONTROL_H_ */
