@@ -35,7 +35,7 @@ SerialControl::~SerialControl()
 
 void SerialControl::setup()
 {
-	struct termios newSettings;		// Contains config for the serial device
+	struct termios tty;		// Contains config for the serial device
 	fileDescriptor = open(SERIALDEVICE, O_RDWR | O_NOCTTY | O_NDELAY); // Open serial device, Read/Write.
 							// No tty because linenoice can terminate the port
 
@@ -44,42 +44,62 @@ void SerialControl::setup()
 	assert(fileDescriptor >= 0);
 
 	// Set all values in the struct to 0 (Memory block can contain random data)
-	memset(&newSettings, 0, sizeof newSettings);
+	memset(&tty, 0, sizeof tty);
+	tcgetattr(fileDescriptor, &tty);
 
-	// Change the config.
-	// See http://www.tldp.org/HOWTO/Serial-Programming-HOWTO/x115.html for a detailed description of each flag
-	newSettings.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
-	newSettings.c_iflag = IGNBRK | ICRNL;
-	newSettings.c_oflag = 0;
-	newSettings.c_lflag = ICANON;
+	cfsetospeed(&tty, (speed_t)B115200);
+	cfsetispeed(&tty, (speed_t)B115200);
 
-	newSettings.c_cc[VINTR]    = 0;     /* Ctrl-c */
-	newSettings.c_cc[VQUIT]    = 0;     /* Ctrl-\ */
-	newSettings.c_cc[VERASE]   = 0;     /* del */
-	newSettings.c_cc[VKILL]    = 0;     /* @ */
-	newSettings.c_cc[VEOF]     = 4;     /* Ctrl-d */
-	newSettings.c_cc[VTIME]    = 0;     /* inter-character timer unused */
-	newSettings.c_cc[VMIN]     = 1;     /* blocking read until 1 character arrives */
-	newSettings.c_cc[VSWTC]    = 0;     /* '\0' */
-	newSettings.c_cc[VSTART]   = 0;     /* Ctrl-q */
-	newSettings.c_cc[VSTOP]    = 0;     /* Ctrl-s */
-	newSettings.c_cc[VSUSP]    = 0;     /* Ctrl-z */
-	newSettings.c_cc[VEOL]     = 0;     /* '\0' */
-	newSettings.c_cc[VREPRINT] = 0;     /* Ctrl-r */
-	newSettings.c_cc[VDISCARD] = 0;     /* Ctrl-u */
-	newSettings.c_cc[VWERASE]  = 0;     /* Ctrl-w */
-	newSettings.c_cc[VLNEXT]   = 0;     /* Ctrl-v */
-	newSettings.c_cc[VEOL2]    = 0;     /* '\0' */
+	tty.c_cflag     &=  ~PARENB;        // Make 8n1
+	tty.c_cflag     &=  ~CSTOPB;
+	tty.c_cflag     &=  ~CSIZE;
+	tty.c_cflag     |=  CS8;
 
-	// Clean the serial line and apply the new settings
-	tcflush(fileDescriptor, TCIFLUSH);
-	tcsetattr(fileDescriptor, TCSANOW, &newSettings);
+	tty.c_cflag     &=  ~CRTSCTS;       // no flow control
+	tty.c_cc[VMIN]      =   1;                  // read doesn't block
+	tty.c_cc[VTIME]     =   5;                  // 0.5 seconds read timeout
+	tty.c_cflag     |=  CREAD | CLOCAL;     // turn on READ & ignore ctrl lines
+
+	/* Make raw */
+	cfmakeraw(&tty);
+
+	/* Flush Port, then applies attributes */
+	tcflush( fileDescriptor, TCIFLUSH );
+
+//	// Change the config.
+//	// See http://www.tldp.org/HOWTO/Serial-Programming-HOWTO/x115.html for a detailed description of each flag
+//	tty.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
+//	tty.c_iflag = IGNBRK | ICRNL;
+//	tty.c_oflag = 0;
+//	tty.c_lflag = ICANON;
+//
+//	tty.c_cc[VINTR]    = 0;     /* Ctrl-c */
+//	tty.c_cc[VQUIT]    = 0;     /* Ctrl-\ */
+//	tty.c_cc[VERASE]   = 0;     /* del */
+//	tty.c_cc[VKILL]    = 0;     /* @ */
+//	tty.c_cc[VEOF]     = 4;     /* Ctrl-d */
+//	tty.c_cc[VTIME]    = 0;     /* inter-character timer unused */
+//	tty.c_cc[VMIN]     = 1;     /* blocking read until 1 character arrives */
+//	tty.c_cc[VSWTC]    = 0;     /* '\0' */
+//	tty.c_cc[VSTART]   = 0;     /* Ctrl-q */
+//	tty.c_cc[VSTOP]    = 0;     /* Ctrl-s */
+//	tty.c_cc[VSUSP]    = 0;     /* Ctrl-z */
+//	tty.c_cc[VEOL]     = 0;     /* '\0' */
+//	tty.c_cc[VREPRINT] = 0;     /* Ctrl-r */
+//	tty.c_cc[VDISCARD] = 0;     /* Ctrl-u */
+//	tty.c_cc[VWERASE]  = 0;     /* Ctrl-w */
+//	tty.c_cc[VLNEXT]   = 0;     /* Ctrl-v */
+//	tty.c_cc[VEOL2]    = 0;     /* '\0' */
+//
+//	// Clean the serial line and apply the new settings
+//	tcflush(fileDescriptor, TCIFLUSH);
+	tcsetattr(fileDescriptor, TCSANOW, &tty);
 
 	if(SDEBUG)
 	{
 		int debugFile = open("/dev/ttyO1", O_RDWR | O_NOCTTY | O_NDELAY);
 		tcflush(debugFile, TCIFLUSH);
-		tcsetattr(debugFile, TCSANOW, &newSettings);
+		tcsetattr(debugFile, TCSANOW, &tty);
 	}
 
 	usleep(1000);
