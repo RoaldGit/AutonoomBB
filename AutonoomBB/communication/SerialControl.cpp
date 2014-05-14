@@ -103,14 +103,13 @@ void SerialControl::setup()
 	char incomingBuffer[UART_BUFFER_SIZE];
 	memset(incomingBuffer, 0, UART_BUFFER_SIZE);
 
-//	cout << "Sending message" << endl;
-
 //	write(fileDescriptor, &reboot, 7);
 	write(fileDescriptor, &stat, 7);
 //	write(fileDescriptor, &reboot, 7);
 
 	usleep(3000);
-	write(fileDescriptor, &green, 10);
+//	write(fileDescriptor, &green, 10);
+	send(green);
 
 	sleep(1);
 	write(fileDescriptor, &blue, 10);
@@ -120,25 +119,24 @@ void SerialControl::setup()
 
 	sleep(1);
 	write(fileDescriptor, &greenOff, 10);
-//	write(fileDescriptor, &lf, 1);
 
-	//send(*green);
+//	send(green);
 
 	usleep(3000);
 
 	int received = read(fileDescriptor, incomingBuffer, UART_BUFFER_SIZE);
 	incomingBuffer[received] = 0;
-	cout << incomingBuffer << endl;
+	cout << hex << incomingBuffer << dec << endl;
 }
 
 void SerialControl::send(unsigned char buffer[])
 {
-	int bytes = write(fileDescriptor, &buffer, 10);
+	int bytes = write(fileDescriptor, buffer, buffer[2]);
 	if(bytes == -1) cout << errno << endl;
 
-//	cout << "Sent ";
-//	for(int i = 0; i < buffer[2]; i++)
-//		cout << hex << (int)buffer[i] << dec << " ";
-//
-//	cout << endl;
+	cout << "Sent ";
+	for(int i = 0; i < buffer[2]; i++)
+		cout << hex << (int)buffer[i] << dec << " ";
+
+	cout << endl;
 }

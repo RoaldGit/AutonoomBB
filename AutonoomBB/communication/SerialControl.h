@@ -23,6 +23,7 @@ public:
 private:
 	int fileDescriptor;		// Pointer to the device file
 	pthread_t serialThread;	//
+	void send(unsigned char buffer[]);
 };
 
 #endif /* SERIALCONTROL_H_ */
