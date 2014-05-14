@@ -24,6 +24,8 @@ private:
 	int fileDescriptor;		// Pointer to the device file
 	pthread_t serialThread;	//
 	void send(unsigned char buffer[]);
+	unsigned char calcCheck1(unsigned char buffer[]);
+	unsigned char calcCheck2(unsigned char checksum1);
 };
 
 #endif /* SERIALCONTROL_H_ */
