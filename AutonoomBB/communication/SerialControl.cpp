@@ -98,31 +98,42 @@ void SerialControl::setup()
 	unsigned char stat[] = {0xFF, 0xFF, 0x07, 0xFE, 0x07, 0xFE, 0x00};
 	unsigned char reboot[] = {0xFF, 0xFF, 0x07, 0xFD, 0xF2, 0x08, 0xF6};
 	unsigned char green[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x35, 0x01, 0x01};
-	unsigned char greenOff[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x35, 0x01, 0x00};
+	unsigned char ledsOff[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x35, 0x01, 0x00};
 	unsigned char blue[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC2, 0x3C, 0x35, 0x01, 0x02};
-	char incomingBuffer[UART_BUFFER_SIZE];
+	unsigned char red[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC4, 0x3A, 0x35, 0x01, 0x04};
+	unsigned char statusError[] = {0xFF, 0xFF, 0x0B, 0xFD, 0x03, 0xC6, 0x38, 0x30, 0x02, 0x00, 0x00};
+	unsigned char torque[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xA0, 0x5E, 0x34, 0x01, 0x60};
+	unsigned char torqueOff[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x34, 0x01, 0x00};
+//	unsigned char moveshit[] = {0xFF, 0xFF, 0x0C, 0xFD, 0x05, 0x88, 0x76, 40, 0x01, 0x0A, 0x0A, 0x3C};
+	unsigned char move[] = {0xFF, 0xFF, 0x0C, 0xFD, 0x06, 0xFE, 0x00, 0x3C, (525 & 0x00FF), (525 & 0xFF00) >> 8, (0x02 & 0xFD), 0xFD};
+
+	unsigned char incomingBuffer[UART_BUFFER_SIZE];
 	memset(incomingBuffer, 0, UART_BUFFER_SIZE);
 
-//	write(fileDescriptor, &reboot, 7);
-	write(fileDescriptor, &stat, 7);
-//	write(fileDescriptor, &reboot, 7);
+	send(statusError);
+	sleep(1);
+	send(torque);
+//	usleep(3000);
 
 	usleep(3000);
-//	write(fileDescriptor, &green, 10);
 	send(green);
 
 	sleep(1);
-	write(fileDescriptor, &blue, 10);
-
-	usleep(3000);
-	write(fileDescriptor, &stat, 7);
+	send(blue);
 
 	sleep(1);
-	write(fileDescriptor, &greenOff, 10);
+	send(red);
 
-//	send(green);
+	sleep(1);
+	send(ledsOff);
 
 	usleep(3000);
+
+	sleep(1);
+	//send(moveshit);
+	send(move);
+	usleep(3000);
+	send(stat);
 
 	int received = read(fileDescriptor, incomingBuffer, UART_BUFFER_SIZE);
 	incomingBuffer[received] = 0;
@@ -131,6 +142,9 @@ void SerialControl::setup()
 
 void SerialControl::send(unsigned char buffer[])
 {
+	buffer[5] = calcCheck1(buffer);
+	buffer[6] = calcCheck2(buffer[5]);
+
 	int bytes = write(fileDescriptor, buffer, buffer[2]);
 	if(bytes == -1) cout << errno << endl;
 
@@ -139,4 +153,21 @@ void SerialControl::send(unsigned char buffer[])
 		cout << hex << (int)buffer[i] << dec << " ";
 
 	cout << endl;
+}
+
+unsigned char SerialControl::calcCheck1(unsigned char buffer[])
+{
+	int packSize =  buffer[2];
+	unsigned char checksum1 = (buffer[2] ^ buffer[3] ^ buffer[4]);
+
+	if(packSize > 7)
+		for(int i = 7; i < packSize; i++)
+			checksum1 ^= buffer[i];
+
+	return checksum1 &= 0xFE;
+}
+
+unsigned char SerialControl::calcCheck2(unsigned char checksum1)
+{
+	return ~(checksum1) & 0xFE;
 }
