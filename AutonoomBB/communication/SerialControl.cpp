@@ -14,11 +14,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <iomanip> // for cout << hex << dec
 
 #include "SerialControl.h"
-
-#define SDEBUG true
-#define _POSIX_SOURCE 1 /* POSIX compliant source */
 
 using namespace std;
 
@@ -95,32 +93,52 @@ void SerialControl::setup()
 //	tcflush(fileDescriptor, TCIFLUSH);
 	tcsetattr(fileDescriptor, TCSANOW, &tty);
 
-	if(SDEBUG)
-	{
-		int debugFile = open("/dev/ttyO1", O_RDWR | O_NOCTTY | O_NDELAY);
-		tcflush(debugFile, TCIFLUSH);
-		tcsetattr(debugFile, TCSANOW, &tty);
-	}
-
 	usleep(1000);
-	//char *message;
-	unsigned char package[] = {0xFF, 0xFF, 0x07, 0xFE, 0x07, 0xFE, 0x00};
-	//unsigned char package[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x35, 0x01, 0x01};
+
+	unsigned char stat[] = {0xFF, 0xFF, 0x07, 0xFE, 0x07, 0xFE, 0x00};
+	unsigned char reboot[] = {0xFF, 0xFF, 0x07, 0xFD, 0xF2, 0x08, 0xF6};
+	unsigned char green[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x35, 0x01, 0x01};
+	unsigned char greenOff[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x35, 0x01, 0x00};
+	unsigned char blue[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC2, 0x3C, 0x35, 0x01, 0x02};
 	char incomingBuffer[UART_BUFFER_SIZE];
 	memset(incomingBuffer, 0, UART_BUFFER_SIZE);
 
-	cout << "Sending message" << endl;
+//	cout << "Sending message" << endl;
 
-	unsigned char lf = 0x0D;
-	int bytes = write(fileDescriptor, &package, 7);
-	write(fileDescriptor, &lf, 1);
+//	write(fileDescriptor, &reboot, 7);
+	write(fileDescriptor, &stat, 7);
+//	write(fileDescriptor, &reboot, 7);
+
+	usleep(3000);
+	write(fileDescriptor, &green, 10);
+
+	sleep(1);
+	write(fileDescriptor, &blue, 10);
+
+	usleep(3000);
+	write(fileDescriptor, &stat, 7);
+
+	sleep(1);
+	write(fileDescriptor, &greenOff, 10);
+//	write(fileDescriptor, &lf, 1);
+
+	//send(*green);
 
 	usleep(3000);
 
 	int received = read(fileDescriptor, incomingBuffer, UART_BUFFER_SIZE);
 	incomingBuffer[received] = 0;
 	cout << incomingBuffer << endl;
-	if(bytes == -1) cout << errno << endl;
-	else cout << "Done sending " << bytes << " bytes" << endl;
 }
 
+void SerialControl::send(unsigned char buffer[])
+{
+	int bytes = write(fileDescriptor, &buffer, 10);
+	if(bytes == -1) cout << errno << endl;
+
+//	cout << "Sent ";
+//	for(int i = 0; i < buffer[2]; i++)
+//		cout << hex << (int)buffer[i] << dec << " ";
+//
+//	cout << endl;
+}
