@@ -140,6 +140,7 @@ void SerialControl::setup()
 	int received = read(fileDescriptor, incomingBuffer, UART_BUFFER_SIZE);
 	incomingBuffer[received] = 0;
 	cout << hex << incomingBuffer << dec << endl;
+	// TODO make this a thread
 }
 
 void SerialControl::send(unsigned char buffer[])

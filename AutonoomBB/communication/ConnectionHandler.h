@@ -8,15 +8,17 @@
 #ifndef CONNECTIONHANDLER_H_
 #define CONNECTIONHANDLER_H_
 
-namespace std {
-
 class ConnectionHandler {
 public:
 	virtual ~ConnectionHandler();
+	static void handleConnection(int socket);
 
 private:
-	ConnectionHandler();
+	ConnectionHandler(int socket);
+	static void listen();
+	void reply();
+	int socket;					// Socket where the data will come in
+	//pthread_t connectionThread;	// Thread that will handle this connection
 };
 
-} /* namespace std */
 #endif /* CONNECTIONHANDLER_H_ */

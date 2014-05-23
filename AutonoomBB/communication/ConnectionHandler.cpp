@@ -7,14 +7,23 @@
 
 #include "ConnectionHandler.h"
 
-namespace std {
+#include <pthread.h>
 
-ConnectionHandler::~ConnectionHandler() {
-	// TODO Auto-generated destructor stub
+using namespace std;
+
+
+ConnectionHandler::ConnectionHandler(int socket)
+	:socket(socket)
+{
+
 }
-ConnectionHandler::ConnectionHandler() {
-	// TODO Auto-generated constructor stub
+
+ConnectionHandler::~ConnectionHandler()
+{
 
 }
 
-} /* namespace std */
+void ConnectionHandler::handleConnection(int socket)
+{
+	ConnectionHandler newConnection = new ConnectionHandler(socket);
+}
