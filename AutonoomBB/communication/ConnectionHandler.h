@@ -11,12 +11,12 @@
 class ConnectionHandler {
 public:
 	virtual ~ConnectionHandler();
-	static void handleConnection(int socket);
+	void start();
 
 private:
 	ConnectionHandler(int socket);
-	static void listen();
-	void reply();
+	static void* startup(void *);
+	void handleConnection();
 	int socket;					// Socket where the data will come in
 	//pthread_t connectionThread;	// Thread that will handle this connection
 };

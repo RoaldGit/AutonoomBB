@@ -46,8 +46,7 @@ pthread_t Server::start()
 	pthread_create(&serverThread, NULL, &Server::startUp, this);
 	cout << "Server thread started" << endl;
 
-	// Wait for the Thread to finish
-	// Return the s
+	// Return the thread
 	return serverThread;
 }
 
@@ -160,14 +159,12 @@ void Server::run()
 		if (newSocket == -1) cout << "Accept returned " << errno << endl;
 		else
 		{
-
 			// Bytes received and data buffer
 			ssize_t received;
 			char dataBuffer[TCP_BUFFER_SIZE];
 
 			// Receive message
 			received = recv(newSocket, dataBuffer, TCP_BUFFER_SIZE, 0);
-			cout << "sending back a message..."  << endl;
 			if(received == 0) cout << "host shut down" << endl;
 			if(received == -1) cout << "recv error" << endl;
 
