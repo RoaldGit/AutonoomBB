@@ -159,7 +159,9 @@ void Server::run()
 		if (newSocket == -1) cout << "Accept returned " << errno << endl;
 		else
 		{
-			// Bytes received and data buffer
+			ConnectionHandler newConnection = new ConnectionHandler(newSocket);
+			newConnection.start();
+			/*// Bytes received and data buffer
 			ssize_t received;
 			char dataBuffer[TCP_BUFFER_SIZE];
 
@@ -179,7 +181,7 @@ void Server::run()
 			cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
 
 			// Close the socket descriptor
-			close(newSocket);
+			close(newSocket);*/
 		}}
 	}
 
