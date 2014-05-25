@@ -16,6 +16,8 @@ using namespace std;
 
 #define TCP_BUFFER_SIZE 1024
 
+// TODO TCP packet struct for handling
+
 ConnectionHandler::ConnectionHandler(int socket)
 	:socket(socket)
 {
