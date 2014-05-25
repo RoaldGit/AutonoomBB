@@ -15,13 +15,14 @@
 #include <unistd.h>
 #include <errno.h>
 #include <iomanip> // for cout << hex << dec
+#include <pthread.h>
 
 #include "SerialControl.h"
 
 using namespace std;
 
 SerialControl::SerialControl()
-	:fileDescriptor(0), serialThread(0)
+	:fileDescriptor(0), serialThread(0), inUseMutex(PTHREAD_MUTEX_INITIALIZER)
 {
 
 }

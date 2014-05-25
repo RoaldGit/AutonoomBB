@@ -22,8 +22,10 @@ public:
 	void setup();
 private:
 	int fileDescriptor;		// Pointer to the device file
-	pthread_t serialThread;	//
-	void send(unsigned char buffer[]);
+	pthread_t serialThread;	// Thread controlling serial trafic
+	pthread_mutex_t inUseMutex; 	// Mutex used to lock the serial control so that one thread can write a command
+									// and read the reply without being interrupted.
+	unsigned char send(unsigned char buffer[]);
 	unsigned char calcCheck1(unsigned char buffer[]);
 	unsigned char calcCheck2(unsigned char checksum1);
 };
