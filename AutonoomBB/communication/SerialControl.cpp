@@ -22,21 +22,31 @@
 using namespace std;
 
 SerialControl::SerialControl()
-	:fileDescriptor(0), serialThread(0), inUseMutex(PTHREAD_MUTEX_INITIALIZER)
+	:fileDescriptor(0), serialThread(0), inUseMutex(PTHREAD_MUTEX_INITIALIZER), uniqueInstance(0)
 {
 
 }
 
 SerialControl::~SerialControl()
 {
+	delete(uniqueInstance);
+}
 
+SerialControl* SerialControl::getInstance()
+{
+	if(uniqueInstance == 0)
+		uniqueInstance = new SerialControl();
+
+	return uniqueInstance;
 }
 
 void SerialControl::setup()
 {
 	struct termios tty;		// Contains config for the serial device
-	fileDescriptor = open(SERIALDEVICE, O_RDWR | O_NOCTTY | O_NDELAY); // Open serial device, Read/Write.
-							// No tty because linenoice can terminate the port
+
+	// Open serial device, Read/Write.
+	// No controlling tty because linenoice can terminate the port
+	fileDescriptor = open(SERIALDEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
 
 	// Ensure the device has been opened
 	if(fileDescriptor < 0) cout << "Failed to open " << SERIALDEVICE << endl;
@@ -49,49 +59,21 @@ void SerialControl::setup()
 	cfsetospeed(&tty, (speed_t)B115200);
 	cfsetispeed(&tty, (speed_t)B115200);
 
-	tty.c_cflag     &=  ~PARENB;        // Make 8n1
-	tty.c_cflag     &=  ~CSTOPB;
-	tty.c_cflag     &=  ~CSIZE;
+	tty.c_cflag     &=  ~PARENB;    	// No parity
+	tty.c_cflag     &=  ~CSTOPB;		// No stop bit
+	tty.c_cflag     &=  ~CSIZE;			// Clear and set character size (8 bits)
 	tty.c_cflag     |=  CS8;
+	tty.c_cflag     &=  ~CRTSCTS;		// No flow control
+	tty.c_cflag     |=  CREAD | CLOCAL;	// Turn on READ & ignore ctrl lines
 
-	tty.c_cflag     &=  ~CRTSCTS;       // no flow control
-	tty.c_cc[VMIN]      =   1;                  // read doesn't block
-	tty.c_cc[VTIME]     =   5;                  // 0.5 seconds read timeout
-	tty.c_cflag     |=  CREAD | CLOCAL;     // turn on READ & ignore ctrl lines
+	tty.c_cc[VMIN]      =   1;          // Read doesn't block
+	tty.c_cc[VTIME]     =   5;          // 0.5 seconds read timeout
 
-	/* Make raw */
+	// Make data raw (no processing of data)
 	cfmakeraw(&tty);
 
-	/* Flush Port, then applies attributes */
+	// Flush Port, then applies attributes
 	tcflush( fileDescriptor, TCIFLUSH );
-
-//	// Change the config.
-//	// See http://www.tldp.org/HOWTO/Serial-Programming-HOWTO/x115.html for a detailed description of each flag
-//	tty.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
-//	tty.c_iflag = IGNBRK | ICRNL;
-//	tty.c_oflag = 0;
-//	tty.c_lflag = ICANON;
-//
-//	tty.c_cc[VINTR]    = 0;     /* Ctrl-c */
-//	tty.c_cc[VQUIT]    = 0;     /* Ctrl-\ */
-//	tty.c_cc[VERASE]   = 0;     /* del */
-//	tty.c_cc[VKILL]    = 0;     /* @ */
-//	tty.c_cc[VEOF]     = 4;     /* Ctrl-d */
-//	tty.c_cc[VTIME]    = 0;     /* inter-character timer unused */
-//	tty.c_cc[VMIN]     = 1;     /* blocking read until 1 character arrives */
-//	tty.c_cc[VSWTC]    = 0;     /* '\0' */
-//	tty.c_cc[VSTART]   = 0;     /* Ctrl-q */
-//	tty.c_cc[VSTOP]    = 0;     /* Ctrl-s */
-//	tty.c_cc[VSUSP]    = 0;     /* Ctrl-z */
-//	tty.c_cc[VEOL]     = 0;     /* '\0' */
-//	tty.c_cc[VREPRINT] = 0;     /* Ctrl-r */
-//	tty.c_cc[VDISCARD] = 0;     /* Ctrl-u */
-//	tty.c_cc[VWERASE]  = 0;     /* Ctrl-w */
-//	tty.c_cc[VLNEXT]   = 0;     /* Ctrl-v */
-//	tty.c_cc[VEOL2]    = 0;     /* '\0' */
-//
-//	// Clean the serial line and apply the new settings
-//	tcflush(fileDescriptor, TCIFLUSH);
 	tcsetattr(fileDescriptor, TCSANOW, &tty);
 
 	usleep(1000);
@@ -107,7 +89,6 @@ void SerialControl::setup()
 	unsigned char statusError[] = {0xFF, 0xFF, 0x0B, 0xFD, 0x03, 0xC6, 0x38, 0x30, 0x02, 0x00, 0x00};
 	unsigned char torque[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xA0, 0x5E, 0x34, 0x01, 0x60};
 	unsigned char torqueOff[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x34, 0x01, 0x00};
-//	unsigned char moveshit[] = {0xFF, 0xFF, 0x0C, 0xFD, 0x05, 0x88, 0x76, 40, 0x01, 0x0A, 0x0A, 0x3C};
 	unsigned char move[] = {0xFF, 0xFF, 0x0C, 0xFD, 0x06, 0xFE, 0x00, 0x3C, (pos & 0x00FF), (pos & 0xFF00) >> 8, (0x08 & 0xFD), 0xFD};
 
 	unsigned char incomingBuffer[UART_BUFFER_SIZE];
@@ -116,7 +97,6 @@ void SerialControl::setup()
 	send(statusError);
 	sleep(1);
 	send(torque);
-//	usleep(3000);
 
 	usleep(3000);
 	send(green);
@@ -133,7 +113,6 @@ void SerialControl::setup()
 	usleep(3000);
 
 	sleep(1);
-	//send(moveshit);
 	send(move);
 	sleep(2);
 	send(stat);
@@ -141,22 +120,31 @@ void SerialControl::setup()
 	int received = read(fileDescriptor, incomingBuffer, UART_BUFFER_SIZE);
 	incomingBuffer[received] = 0;
 	cout << hex << incomingBuffer << dec << endl;
-	// TODO make this a thread
 }
 
-void SerialControl::send(unsigned char buffer[])
+unsigned char* SerialControl::send(unsigned char command[])
 {
-	buffer[5] = calcCheck1(buffer);
-	buffer[6] = calcCheck2(buffer[5]);
+	// Lock the mutex so that no other processes can call send()
+	pthread_mutex_lock(&inUseMutex);
 
-	int bytes = write(fileDescriptor, buffer, buffer[2]);
+	// Calculate the checksums (bit 5 and 6)
+	command[5] = calcCheck1(command);
+	command[6] = calcCheck2(command[5]);
+
+	// Send the command
+	int bytes = write(fileDescriptor, command, command[2]);
 	if(bytes == -1) cout << errno << endl;
 
+	// Print that a command has been sent
 	cout << "Sent ";
-	for(int i = 0; i < buffer[2]; i++)
-		cout << hex << (int)buffer[i] << dec << " ";
+	for(int i = 0; i < command[2]; i++)
+		cout << hex << (int)command[i] << dec << " ";
 
-	cout << endl;
+
+	// Unlock the mutex so that other processes can call send()
+	pthread_mutex_unlock(&inUseMutex);
+
+	return 0;
 }
 
 unsigned char SerialControl::calcCheck1(unsigned char buffer[])
