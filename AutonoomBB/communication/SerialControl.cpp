@@ -140,11 +140,14 @@ unsigned char* SerialControl::send(unsigned char command[])
 	for(int i = 0; i < command[2]; i++)
 		cout << hex << (int)command[i] << dec << " ";
 
+	int totalRead = 0;
+	int read = -1;
+	unsigned char incomingBuffer[UART_BUFFER_SIZE];
 
 	// Unlock the mutex so that other processes can call send()
 	pthread_mutex_unlock(&inUseMutex);
 
-	return 0;
+	return incomingBuffer;
 }
 
 unsigned char SerialControl::calcCheck1(unsigned char buffer[])
