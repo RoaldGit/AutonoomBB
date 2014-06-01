@@ -13,6 +13,7 @@
 #include <errno.h>
 
 #include "Server.h"
+#include "ConnectionHandler.h"
 
 #define NDEBUG
 #define TCP_BUFFER_SIZE 1024
@@ -159,8 +160,8 @@ void Server::run()
 		if (newSocket == -1) cout << "Accept returned " << errno << endl;
 		else
 		{
-			ConnectionHandler newConnection = new ConnectionHandler(newSocket);
-			newConnection.start();
+			ConnectionHandler* newConnection = new ConnectionHandler(newSocket);
+			newConnection->start();
 			/*// Bytes received and data buffer
 			ssize_t received;
 			char dataBuffer[TCP_BUFFER_SIZE];

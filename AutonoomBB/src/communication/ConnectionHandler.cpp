@@ -12,6 +12,8 @@
 #include <cstring>
 #include <sys/socket.h>
 
+//#include "util/TCP.h"
+
 using namespace std;
 
 #define TCP_BUFFER_SIZE 1024
@@ -39,6 +41,8 @@ void *ConnectionHandler::startup(void *obj)
 {
 	ConnectionHandler *connection = reinterpret_cast<ConnectionHandler *>(obj);
 	connection->handleConnection();
+
+	return 0;
 }
 
 void ConnectionHandler::handleConnection()
@@ -55,7 +59,7 @@ void ConnectionHandler::handleConnection()
 
 	// Add end string character for printing, and print received message
 	dataBuffer[received] = '\0';
-	cout << "Received " << received << " bytes|Message: " << endl << "------" << endl << dataBuffer << "------" << endl;
+	cout << "Received " << received << " bytes|Message: " << endl << dataBuffer << endl << "------" << endl;
 
 	// Send a reply
 	char *msg = "Connected.\n";
@@ -64,5 +68,5 @@ void ConnectionHandler::handleConnection()
 	cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
 
 	// Close the socket descriptor
-	close(newSocket);
+	close(socket);
 }

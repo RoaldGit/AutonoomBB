@@ -10,11 +10,11 @@
 
 class ConnectionHandler {
 public:
+	ConnectionHandler(int socket);
 	virtual ~ConnectionHandler();
 	void start();
 
 private:
-	ConnectionHandler(int socket);
 	static void* startup(void *);
 	void handleConnection();
 	int socket;					// Socket where the data will come in

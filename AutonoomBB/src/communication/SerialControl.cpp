@@ -34,10 +34,10 @@ SerialControl::~SerialControl()
 
 SerialControl* SerialControl::getInstance()
 {
-	if(uniqueInstance == 0)
+	/*if(uniqueInstance == 0)
 		uniqueInstance = new SerialControl();
 
-	return uniqueInstance;
+	return uniqueInstance;*/ return 0;
 }
 
 void SerialControl::setup()

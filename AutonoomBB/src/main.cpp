@@ -23,8 +23,8 @@ int main() {
 	SerialControl *serialTest = new SerialControl();
 	serialTest->setup();
 
-	sleep(20);
-	server->stop();
+	//sleep(20);
+	//server->stop();
 
 	// Wait for the Thread to finish
 	pthread_join(serverThread, NULL);
