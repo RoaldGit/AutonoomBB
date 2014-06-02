@@ -17,6 +17,7 @@ public:
 private:
 	static void* startup(void *);
 	void handleConnection();
+	int findBody(unsigned char buffer[], int length);
 	int socket;					// Socket where the data will come in
 	//pthread_t connectionThread;	// Thread that will handle this connection
 };
