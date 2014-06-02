@@ -139,6 +139,7 @@ unsigned char* SerialControl::send(unsigned char command[])
 	cout << "Sent ";
 	for(int i = 0; i < command[2]; i++)
 		cout << hex << (int)command[i] << dec << " ";
+	cout << endl;
 
 	int totalRead = 0;
 	int read = -1;
