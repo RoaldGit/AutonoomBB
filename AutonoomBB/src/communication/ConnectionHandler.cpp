@@ -14,6 +14,7 @@
 #include <iomanip>
 
 #include <cstdio>
+#include <string>
 
 //#include "util/TCP.h"
 
@@ -52,7 +53,7 @@ void ConnectionHandler::handleConnection()
 {
 	// Bytes received and data buffer
 	ssize_t received;
-	char unsigned dataBuffer[TCP_BUFFER_SIZE];
+	char dataBuffer[TCP_BUFFER_SIZE];
 
 	// Receive message
 	received = recv(socket, dataBuffer, TCP_BUFFER_SIZE, 0);
@@ -63,15 +64,18 @@ void ConnectionHandler::handleConnection()
 	// Add end string character for printing, and print received message
 	dataBuffer[received] = '\0';
 	cout << "Received " << received << " bytes|Message: " << endl << dataBuffer << endl << "------" << endl;
+
+
+
+	// print message as hex, for debug purposes
 	for(int i = 0; i < received; i++)
 	{
 		printf("%x ", dataBuffer[i]);
 		if(dataBuffer[i] == '\n')
 			cout << endl;
-	}
+	} cout << endl;
 
-	cout << endl;
-
+	// TODO Filter data from message, for now, just grab hex (Char - 30) for hex value of a char, -1 for char > 9.
 	// Send a reply
 	char *msg = "Connected.\n";
 	ssize_t bytes_sent;
@@ -82,14 +86,8 @@ void ConnectionHandler::handleConnection()
 	close(socket);
 }
 
-int ConnectionHandler::findBody(unsigned char buffer[], int length)
+int ConnectionHandler::findBody(char buffer[])
 {
-	int body_start = 0;
-	while(body_start + 3 < length)
-	{
-		if(buffer[body_start] == '\r' && buffer[body_start + 1] == '\n' && buffer[body_start + 2] == '\r' && buffer[body_start + 3] == '\n')
-			return body_start + 4;
-		body_start++;
-	}
-	return 0;
+	char end[] = "\r\n\r\n";
+	return strstr(buffer, end) - buffer + 4;
 }
