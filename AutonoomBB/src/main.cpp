@@ -20,7 +20,7 @@ int main() {
 	Server *server = new Server();
 	pthread_t serverThread = server->start();
 
-	SerialControl *serialTest = new SerialControl();
+	SerialControl *serialTest = SerialControl::getInstance();
 	serialTest->setup();
 
 	//sleep(20);

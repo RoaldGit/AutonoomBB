@@ -21,23 +21,24 @@
 
 using namespace std;
 
+SerialControl* SerialControl::uniqueInstance = NULL;
+
 SerialControl::SerialControl()
-	:fileDescriptor(0), serialThread(0), inUseMutex(PTHREAD_MUTEX_INITIALIZER), uniqueInstance(0)
+	:fileDescriptor(0), serialThread(0), inUseMutex(PTHREAD_MUTEX_INITIALIZER)//, uniqueInstance(0)
 {
 
 }
 
 SerialControl::~SerialControl()
 {
-	delete(uniqueInstance);
+
 }
 
 SerialControl* SerialControl::getInstance()
 {
-	/*if(uniqueInstance == 0)
-		uniqueInstance = new SerialControl();
-
-	return uniqueInstance;*/ return 0;
+	if(!uniqueInstance)
+		uniqueInstance = new SerialControl;
+	return uniqueInstance;
 }
 
 void SerialControl::setup()
@@ -56,6 +57,7 @@ void SerialControl::setup()
 	memset(&tty, 0, sizeof tty);
 	tcgetattr(fileDescriptor, &tty);
 
+	// Set io baud rate (115200)
 	cfsetospeed(&tty, (speed_t)B115200);
 	cfsetispeed(&tty, (speed_t)B115200);
 
@@ -78,6 +80,7 @@ void SerialControl::setup()
 
 	usleep(1000);
 
+	/*
 	int pos = 800;
 
 	unsigned char stat[] = {0xFF, 0xFF, 0x07, 0xFE, 0x07, 0xFE, 0x00};
@@ -91,8 +94,7 @@ void SerialControl::setup()
 	unsigned char torqueOff[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x34, 0x01, 0x00};
 	unsigned char move[] = {0xFF, 0xFF, 0x0C, 0xFD, 0x06, 0xFE, 0x00, 0x3C, (pos & 0x00FF), (pos & 0xFF00) >> 8, (0x08 & 0xFD), 0xFD};
 
-	unsigned char incomingBuffer[UART_BUFFER_SIZE];
-	memset(incomingBuffer, 0, UART_BUFFER_SIZE);
+
 
 	send(statusError);
 	sleep(1);
@@ -117,9 +119,12 @@ void SerialControl::setup()
 	sleep(2);
 	send(stat);
 
+	unsigned char incomingBuffer[UART_BUFFER_SIZE];
+	memset(incomingBuffer, 0, UART_BUFFER_SIZE);
+
 	int received = read(fileDescriptor, incomingBuffer, UART_BUFFER_SIZE);
 	incomingBuffer[received] = 0;
-	cout << hex << incomingBuffer << dec << endl;
+	cout << hex << incomingBuffer << dec << endl;*/
 }
 
 unsigned char* SerialControl::send(unsigned char command[])
@@ -130,6 +135,9 @@ unsigned char* SerialControl::send(unsigned char command[])
 	// Calculate the checksums (bit 5 and 6)
 	command[5] = calcCheck1(command);
 	command[6] = calcCheck2(command[5]);
+
+	// TODO test the calcchecksum method
+	//calcChecksums(command);
 
 	// Send the command
 	int bytes = write(fileDescriptor, command, command[2]);
@@ -148,7 +156,8 @@ unsigned char* SerialControl::send(unsigned char command[])
 	// Unlock the mutex so that other processes can call send()
 	pthread_mutex_unlock(&inUseMutex);
 
-	return incomingBuffer;
+	return 0;
+	//return incomingBuffer;
 }
 
 unsigned char SerialControl::calcCheck1(unsigned char buffer[])
@@ -166,4 +175,17 @@ unsigned char SerialControl::calcCheck1(unsigned char buffer[])
 unsigned char SerialControl::calcCheck2(unsigned char checksum1)
 {
 	return ~(checksum1) & 0xFE;
+}
+
+void SerialControl::calcChecksums(unsigned char buffer[])
+{
+	int packSize =  buffer[2];
+	unsigned char checksum1 = (buffer[2] ^ buffer[3] ^ buffer[4]);
+
+	if(packSize > 7)
+		for(int i = 7; i < packSize; i++)
+			checksum1 ^= buffer[i];
+
+	buffer[5] = checksum1 &= 0xFE;
+	buffer[6] = ~(checksum1) & 0xFE;
 }
