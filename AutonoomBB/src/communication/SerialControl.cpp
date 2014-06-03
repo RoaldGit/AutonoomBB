@@ -24,7 +24,7 @@ using namespace std;
 SerialControl* SerialControl::uniqueInstance = NULL;
 
 SerialControl::SerialControl()
-	:fileDescriptor(0), serialThread(0), inUseMutex(PTHREAD_MUTEX_INITIALIZER)//, uniqueInstance(0)
+	:fileDescriptor(0), serialThread(0), inUseMutex(PTHREAD_MUTEX_INITIALIZER)
 {
 
 }
@@ -149,9 +149,9 @@ unsigned char* SerialControl::send(unsigned char command[])
 		cout << hex << (int)command[i] << dec << " ";
 	cout << endl;
 
-	int totalRead = 0;
-	int read = -1;
-	unsigned char incomingBuffer[UART_BUFFER_SIZE];
+//	int totalRead = 0;
+//	int read = -1;
+//	unsigned char incomingBuffer[UART_BUFFER_SIZE];
 
 	// Unlock the mutex so that other processes can call send()
 	pthread_mutex_unlock(&inUseMutex);
