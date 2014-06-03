@@ -146,5 +146,9 @@ int ConnectionHandler::findBody(char buffer[])
 	// HTML headers are closed by a double carriage return and newline
 	char end[] = "\r\n\r\n";
 	// Find the end of the HTML header
-	return strstr(buffer, end) - buffer + 4;
+
+	if(strstr(buffer, end) == NULL)
+		return 0;
+	else
+		return strstr(buffer, end) - buffer + 4;
 }
