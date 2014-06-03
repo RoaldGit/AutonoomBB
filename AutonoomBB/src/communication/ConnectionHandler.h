@@ -18,7 +18,7 @@ private:
 	static void* startup(void *);
 	void handleConnection();
 	int findBody(char buffer[]);
-	unsigned char
+	unsigned char constructByte();
 	int socket;					// Socket where the data will come in
 };
 
