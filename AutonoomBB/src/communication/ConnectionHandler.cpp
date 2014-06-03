@@ -65,19 +65,43 @@ void ConnectionHandler::handleConnection()
 	dataBuffer[received] = '\0';
 	cout << "Received " << received << " bytes|Message: " << endl << dataBuffer << endl << "------" << endl;
 
+	// Find the start of the data (skip over all the headers)
+	int start_body = findBody(dataBuffer);
 
-
+/*
 	// print message as hex, for debug purposes
 	for(int i = 0; i < received; i++)
 	{
 		printf("%x ", dataBuffer[i]);
 		if(dataBuffer[i] == '\n')
 			cout << endl;
-	} cout << endl;
+	} cout << endl;*/
 
-	// TODO Filter data from message, for now, just grab hex (Char - 30) for hex value of a char, -1 for char > 9.
+	// Decode the message. The message, in case of serial data will be built up out of segments of 3 chars.
+	// 2 of these chars represent a hexidecimal value (FF), the 3rd is a space.
+	unsigned char commands[1000];
+	unsigned char chars[2];
+	int bytes_made = 0;
+
+	for(int i = start_body; i < received;)
+	{
+		chars[0] = dataBuffer[i];
+		chars[1] = dataBuffer[i + 1];
+
+		for(int k = 0; k < 2; k++)
+		{
+			if(chars[k] > 40)
+				chars[k] = chars[k] - 1;
+
+			chars[k] = chars[k] - 30;
+		}
+
+		chars[0] = chars[0] << 4;
+		commands[bytes_made] = chars[0] & chars[1];
+	}
+
 	// Send a reply
-	char *msg = "Connected.\n";
+	char *msg = "Message received.\n";
 	ssize_t bytes_sent;
 	bytes_sent = send(socket, msg, strlen(msg), 0);
 	cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
@@ -86,8 +110,11 @@ void ConnectionHandler::handleConnection()
 	close(socket);
 }
 
+
 int ConnectionHandler::findBody(char buffer[])
 {
+	// HTML headers are closed by a double carriage return and newline
 	char end[] = "\r\n\r\n";
+	// Find the end of the HTML header
 	return strstr(buffer, end) - buffer + 4;
 }

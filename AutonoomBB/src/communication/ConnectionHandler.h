@@ -18,8 +18,8 @@ private:
 	static void* startup(void *);
 	void handleConnection();
 	int findBody(char buffer[]);
+	unsigned char
 	int socket;					// Socket where the data will come in
-	//pthread_t connectionThread;	// Thread that will handle this connection
 };
 
 #endif /* CONNECTIONHANDLER_H_ */
