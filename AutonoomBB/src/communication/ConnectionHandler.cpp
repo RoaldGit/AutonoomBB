@@ -78,9 +78,9 @@ void ConnectionHandler::handleConnection()
 
 	// Decode the message. The message, in case of serial data will be built up out of segments of 3 chars.
 	// 2 of these chars represent a hexidecimal value (FF), the 3rd is a space.
-	unsigned char commands[(received - start_body) / 3];	// Filtered command
-	unsigned char chars[2];									// 2 bytes making the actual hex value
-	int bytes_made = 0;										// Number of hex values made/extracted so far, index for commands[]
+	unsigned char commands[(received - start_body) / 3 + 1];	// Filtered command
+	unsigned char chars[2];										// 2 bytes making the actual hex value
+	int bytes_made = 0;											// Number of hex values made/extracted so far, index for commands[]
 
 	for(int i = start_body; i < received;)
 	{
@@ -122,6 +122,11 @@ void ConnectionHandler::handleConnection()
 		printf("%x ", commands[i]);
 	} cout << endl;
 	//
+
+	// TODO trim the command. The command array may contain garbage. Needs to be filtered out, maybe separate arrays
+	// for each command to be sent separately or combined into a I/S_JOG command (advanced option). To separate the commands
+	// look in the commands array at the 3rd byte (Command lenght), if a new command starts after those bytes (FF FF header)
+	// a new command should follow.
 
 	// Send a reply
 	char *msg = "Message received.\n";
