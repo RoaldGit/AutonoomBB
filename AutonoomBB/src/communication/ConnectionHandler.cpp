@@ -123,6 +123,11 @@ void ConnectionHandler::handleConnection()
 	// for each command to be sent separately or combined into a I/S_JOG command (advanced option). To separate the commands
 	// look in the commands array at the 3rd byte (Command lenght), if a new command starts after those bytes (FF FF header)
 	// a new command should follow.
+	// EDIT: Double commands need to be filtered, because SerialControl::send() calculates a checksum. Additional
+	// commands would be sent without a checksum == bad
+
+	//Uncomment when the command filter is correct. No need
+	//SerialControl::getInstance() -> send(commands);
 
 	// Send a reply
 	char *msg = "Message received.\n";
