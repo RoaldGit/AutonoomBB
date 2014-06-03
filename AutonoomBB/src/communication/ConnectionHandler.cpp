@@ -5,16 +5,15 @@
  *      Author: Asus
  */
 
-#include "ConnectionHandler.h"
-
 #include <pthread.h>
 #include <iostream>
 #include <cstring>
 #include <sys/socket.h>
 #include <iomanip>
-
 #include <cstdio>
-#include <string>
+
+#include "ConnectionHandler.h"
+#include "SerialControl.h"
 
 using namespace std;
 
@@ -75,7 +74,7 @@ void ConnectionHandler::handleConnection()
 	// Decode the message. The message, in case of serial data will be built up out of segments of 3 chars.
 	// 2 of these chars represent a hexidecimal value (FF), the 3rd is a space.
 	unsigned char commands[(received - start_body) / 3 + 1];	// Filtered command
-	unsigned char chars[2];										// 2 bytes making the actual hex value
+	int chars[2];										// 2 bytes making the actual hex value
 	int bytes_made = 0;											// Number of hex values made/extracted so far, index for commands[]
 
 	for(int i = start_body; i < received;)
@@ -84,25 +83,20 @@ void ConnectionHandler::handleConnection()
 		chars[0] = dataBuffer[i];
 		chars[1] = dataBuffer[i + 1];
 
-		// Substract 30 from both chars, because ASCII - 30 is hex value when working with uppercase letters.
-		// Because ASCII 40 is
+		// Substract 48 from both chars, because ASCII - 48 is hex value when working with uppercase letters.
+		// Substract 7 due to some characters between 9 an A
 		for(int k = 0; k < 2; k++)
 		{
-			if(chars[k] > 40)
-				chars[k] = chars[k] - 1;
+			if(chars[k] > 58)
+				chars[k] = chars[k] - 7;
 
-			chars[k] = chars[k] - 30;
-			// in case the above doesn't work (It counts on databuffer containing hex values, not ascii values)
-//			if(chars[k] > 58)
-//				chars[k] = chars[k] - 7;
-//
-//			chars[k] = chars[k] - 48;
+			chars[k] = chars[k] - 48;
 		}
 
 		// Shift the high bit by 4, turning 0x0F into 0xF0
 		chars[0] = chars[0] << 4;
 		// Bitwise AND to combine the bits, forming a single hex value
-		commands[bytes_made] = chars[0] & chars[1];
+		commands[bytes_made] = chars[0] + chars[1];
 
 		i += 3;			// Each hex value in the message consists of 2 chars and is seperated with a space.
 						// The next hex value starts 3 positions from the previous one
@@ -110,14 +104,14 @@ void ConnectionHandler::handleConnection()
 	}
 
 	// DEBUG
-	commands[bytes_made] = '\0'; // close the command array for printing
 	cout << "Command extracted from message: ";
 
 	for(int i = 0; i < bytes_made; i++)
 	{
 		printf("%x ", commands[i]);
 	} cout << endl;
-	//
+
+	SerialControl::getInstance()->send(commands);
 
 	// TODO trim the command. The command array may contain garbage. Needs to be filtered out, maybe separate arrays
 	// for each command to be sent separately or combined into a I/S_JOG command (advanced option). To separate the commands
