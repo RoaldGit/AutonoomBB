@@ -6,6 +6,8 @@
  *
  */
 
+// This file is currently obsolete due to the TCP header never being read from the socket.
+// Leaving it for now in case another use is found
 #ifndef TCP_H_
 #define TCP_H_
 
