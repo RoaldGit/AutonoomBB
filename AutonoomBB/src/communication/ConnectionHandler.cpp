@@ -128,6 +128,10 @@ void ConnectionHandler::handleConnection()
 
 	//Uncomment when the command filter is correct. No need
 	//SerialControl::getInstance() -> send(commands);
+	struct command
+	{
+		unsigned char command[];
+	};
 
 	// Send a reply
 	char *msg = "Message received.\n";
