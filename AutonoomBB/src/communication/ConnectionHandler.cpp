@@ -133,6 +133,9 @@ void ConnectionHandler::handleConnection()
 		unsigned char command[];
 	};
 
+	command commandTest;
+
+
 	// Send a reply
 	char *msg = "Message received.\n";
 	ssize_t bytes_sent;
