@@ -20,6 +20,7 @@ public:
 	static SerialControl* getInstance();
 	void restoreDefault();
 	void setup();
+	unsigned char* send(unsigned char buffer[]);
 private:
 	SerialControl();
 	int fileDescriptor;		// Pointer to the device file
@@ -28,9 +29,6 @@ private:
 									// and read the reply without being interrupted.
 	static SerialControl *uniqueInstance;	// Unique instance of this class, to be used by all.
 									// If this instance is NULL a new one will be created.
-	unsigned char* send(unsigned char buffer[]);
-	unsigned char calcCheck1(unsigned char buffer[]);
-	unsigned char calcCheck2(unsigned char checksum1);
 	void calcChecksums(unsigned char buffer[]);
 };
 

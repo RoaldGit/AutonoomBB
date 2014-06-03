@@ -130,12 +130,8 @@ unsigned char* SerialControl::send(unsigned char command[])
 	// Lock the mutex so that no other processes can call send()
 	pthread_mutex_lock(&inUseMutex);
 
-	// Calculate the checksums (bit 5 and 6)
-	command[5] = calcCheck1(command);
-	command[6] = calcCheck2(command[5]);
-
-	// TODO test the calcchecksum method
-	//calcChecksums(command);
+	// Calculate the checksums for the command
+	calcChecksums(command);
 
 	// Send the command
 	int bytes = write(fileDescriptor, command, command[2]);
@@ -156,23 +152,6 @@ unsigned char* SerialControl::send(unsigned char command[])
 
 	return 0;
 	//return incomingBuffer;
-}
-
-unsigned char SerialControl::calcCheck1(unsigned char buffer[])
-{
-	int packSize =  buffer[2];
-	unsigned char checksum1 = (buffer[2] ^ buffer[3] ^ buffer[4]);
-
-	if(packSize > 7)
-		for(int i = 7; i < packSize; i++)
-			checksum1 ^= buffer[i];
-
-	return checksum1 &= 0xFE;
-}
-
-unsigned char SerialControl::calcCheck2(unsigned char checksum1)
-{
-	return ~(checksum1) & 0xFE;
 }
 
 void SerialControl::calcChecksums(unsigned char buffer[])
