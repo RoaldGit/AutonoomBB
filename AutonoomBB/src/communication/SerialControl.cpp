@@ -139,7 +139,7 @@ unsigned char* SerialControl::send(unsigned char command[])
 	if(bytes == -1) cout << errno << endl;
 
 	// Print that a command has been sent
-	cout << "Sent ";
+	cout << "Sent " << bytes << " bytes: ";
 	for(int i = 0; i < command[2]; i++)
 		cout << hex << (int)command[i] << dec << " ";
 	cout << endl;
