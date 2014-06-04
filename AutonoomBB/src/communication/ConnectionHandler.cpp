@@ -120,8 +120,6 @@ void ConnectionHandler::handleConnection()
 	// EDIT: Double commands need to be filtered, because SerialControl::send() calculates a checksum. Additional
 	// commands would be sent without a checksum == bad
 
-	//Uncomment when the command filter is correct. No need
-	//SerialControl::getInstance() -> send(commands);
 	struct command
 	{
 		unsigned char command[];
