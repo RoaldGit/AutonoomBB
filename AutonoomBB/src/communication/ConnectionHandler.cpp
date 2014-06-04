@@ -150,21 +150,33 @@ void ConnectionHandler::handleTextualCommand(char buffer[], int start_pos, int e
 {
 	int current_pos = start_pos;
 	string command = "";
-	char current_char;
+	char current_char = buffer[current_pos];
 
 	while(current_pos < end_pos && current_char != 0x20)
 	{
-		current_char = buffer[current_pos];
+//		current_char = buffer[current_pos];
 		command += current_char;
 		current_pos++;
-	} current_pos++; // Skip the space
+		current_char = buffer[current_pos];
+	} current_pos++;
 
+	cout << command << endl;
 	unsigned char arguments[(current_pos - end_pos) / 3 + 1];
+//	unsigned char bytes[];
+	int length = constructBytes(buffer, arguments, current_pos, end_pos);
 
-	if(command == "status");
+	if(command == "status")
+	{
+		unsigned char bytes[7];
+		memcpy(bytes, status, 7);
+		bytes[3] = arguments[0];
+		SerialControl::getInstance()->send(bytes);
+	} else if(command == "led")
+
+
 }
 
-void ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int start_pos, int end_pos)
+int ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int start_pos, int end_pos)
 {
 	int chars[2];
 	int bytes_constructed = 0;
@@ -209,6 +221,8 @@ void ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int
 	{
 		printf("%x ", bytes[i]);
 	} cout << endl;
+
+	return bytes_constructed;
 }
 
 int ConnectionHandler::findBody(char buffer[])

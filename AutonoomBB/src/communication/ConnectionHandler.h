@@ -20,7 +20,7 @@ private:
 	void handleConnection();
 	void handleSerialCommand(char buffer[], int start_pos, int end_pos);
 	void handleTextualCommand(char buffer[], int start_pos, int end_pos);
-	void constructBytes(char buffer[], unsigned char bytes[], int start_pos, int end_pos);
+	int constructBytes(char buffer[], unsigned char bytes[], int start_pos, int end_pos);
 	int findBody(char buffer[]);
 
 	int socket;					// Socket where the data will come in
