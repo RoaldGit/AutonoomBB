@@ -154,24 +154,30 @@ void ConnectionHandler::handleTextualCommand(char buffer[], int start_pos, int e
 
 	while(current_pos < end_pos && current_char != 0x20)
 	{
-//		current_char = buffer[current_pos];
 		command += current_char;
 		current_pos++;
 		current_char = buffer[current_pos];
-	} current_pos++;
+	} current_pos++; // Skip the space (0x20)
 
 	cout << command << endl;
 	unsigned char arguments[(current_pos - end_pos) / 3 + 1];
-//	unsigned char bytes[];
-	int length = constructBytes(buffer, arguments, current_pos, end_pos);
+	int commandLength = constructBytes(buffer, arguments, current_pos, end_pos) + 5;
+
+	unsigned char bytes[commandLength];
 
 	if(command == "status")
 	{
-		unsigned char bytes[7];
-		memcpy(bytes, status, 7);
+//		unsigned char bytes[7];
+		memcpy(bytes, status, commandLength);
 		bytes[3] = arguments[0];
 		SerialControl::getInstance()->send(bytes);
 	} else if(command == "led")
+	{
+//		unsigned char bytes[7];
+		memcpy(bytes, status, commandLength);
+		bytes[3] = arguments[0];
+		SerialControl::getInstance()->send(bytes);
+	}
 
 
 }
