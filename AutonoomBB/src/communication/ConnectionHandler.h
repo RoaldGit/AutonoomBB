@@ -17,6 +17,8 @@ public:
 private:
 	static void* startup(void *);
 	void handleConnection();
+	void handleSerialCommand(char buffer[], int bytes_received, int body_start);
+	void handleTextualCommand(char buffer[], int bytes_received, int body_start);
 	int findBody(char buffer[]);
 	unsigned char constructByte();
 	int socket;					// Socket where the data will come in

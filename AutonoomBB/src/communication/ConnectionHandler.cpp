@@ -14,6 +14,7 @@
 
 #include "ConnectionHandler.h"
 #include "SerialControl.h"
+#include "../util/SerialCommand.h"
 
 using namespace std;
 
@@ -58,30 +59,48 @@ void ConnectionHandler::handleConnection()
 
 	// Add end string character for printing, and print received message
 	dataBuffer[received] = '\0';
-	cout << "Received " << received << " bytes|Message: " << endl << dataBuffer << endl << "------" << endl;
+	cout << "Received " << received << " bytes." << endl;//|Message: " << endl << dataBuffer << endl << "------" << endl;
 
 	// Find the start of the data (skip over all the headers)
 	int start_body = findBody(dataBuffer);
 
-	// print message as hex, for debug purposes
-//	for(int i = 0; i < received; i++)
-//	{
-//		printf("%x ", dataBuffer[i]);
-//		if(dataBuffer[i] == '\n')
-//			cout << endl;
-//	} cout << endl;
+	if(dataBuffer[start_body] = 'F')
+		handleSerialCommand(dataBuffer, received, start_body);
+	else
+		handleTextualCommand(dataBuffer, received, start_body);
 
+
+	unsigned char *command = status;
+	command[3] = 0x0A;
+
+	SerialControl::getInstance()->send(command);
+
+	// Send a reply
+	char *msg = "Message received.\n";
+	ssize_t bytes_sent;
+	bytes_sent = send(socket, msg, strlen(msg), 0);
+	cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
+
+	// Close the socket descriptor
+	close(socket);
+}
+
+/*
+ * Handle a message only containing a serial command (FF FF 07 FD 07 00 00 = stat of Servo 253)
+ */
+void ConnectionHandler::handleSerialCommand(char buffer[], int bytes_received,  int start_body)
+{
 	// Decode the message. The message, in case of serial data will be built up out of segments of 3 chars.
 	// 2 of these chars represent a hexidecimal value (FF), the 3rd is a space.
-	unsigned char commands[(received - start_body) / 3 + 1];	// Filtered command
+	unsigned char commands[(bytes_received - start_body) / 3 + 1];	// Filtered command
 	int chars[2];										// 2 bytes making the actual hex value
 	int bytes_made = 0;											// Number of hex values made/extracted so far, index for commands[]
 
-	for(int i = start_body; i < received;)
+	for(int i = start_body; i < bytes_received;)
 	{
 		// Read 2 characters from the data buffer
-		chars[0] = dataBuffer[i];
-		chars[1] = dataBuffer[i + 1];
+		chars[0] = buffer[i];
+		chars[1] = buffer[i + 1];
 
 		// Substract 48 from both chars, because ASCII - 48 is hex value when working with uppercase letters.
 		// Substract 7 due to some characters between 9 an A
@@ -119,25 +138,12 @@ void ConnectionHandler::handleConnection()
 	// a new command should follow.
 	// EDIT: Double commands need to be filtered, because SerialControl::send() calculates a checksum. Additional
 	// commands would be sent without a checksum == bad
-
-	struct command
-	{
-		unsigned char command[];
-	};
-
-	command commandTest;
-
-
-	// Send a reply
-	char *msg = "Message received.\n";
-	ssize_t bytes_sent;
-	bytes_sent = send(socket, msg, strlen(msg), 0);
-	cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
-
-	// Close the socket descriptor
-	close(socket);
 }
 
+void ConnectionHandler::handleTextualCommand(char buffer[], int bytes_received, int body_start)
+{
+
+}
 
 int ConnectionHandler::findBody(char buffer[])
 {
