@@ -91,7 +91,7 @@ void ConnectionHandler::handleSerialCommand(char buffer[], int start_pos,  int e
 {
 	// Decode the message. The message, in case of serial data will be built up out of segments of 3 chars.
 	// 2 of these chars represent a hexidecimal value (FF), the 3rd is a space.
-	unsigned char commands[(end_pos - start_pos) / 3 + 1];	// Filtered command
+	unsigned char command[(end_pos - start_pos) / 3 + 1];	// Filtered command
 	/*int chars[2];										// 2 bytes making the actual hex value
 	int bytes_made = 0;											// Number of hex values made/extracted so far, index for commands[]
 
@@ -134,9 +134,10 @@ void ConnectionHandler::handleSerialCommand(char buffer[], int start_pos,  int e
 		printf("%x ", commands[i]);
 	} cout << endl;*/
 
-	constructBytes(buffer, commands, start_pos, end_pos);
+	int command_length = constructBytes(buffer, command, start_pos, end_pos);
+	command[2] = command_length;
 
-	SerialControl::getInstance()->send(commands);
+	SerialControl::getInstance()->send(command);
 
 	// TODO trim the command. The command array may contain garbage. Needs to be filtered out, maybe separate arrays
 	// for each command to be sent separately or combined into a I/S_JOG command (advanced option). To separate the commands
@@ -163,8 +164,6 @@ void ConnectionHandler::handleTextualCommand(char buffer[], int start_pos, int e
 	unsigned char arguments[(current_pos - end_pos) / 3 + 1];
 	int argument_length = constructBytes(buffer, arguments, current_pos, end_pos);
 	int command_length =  argument_length + 6;
-
-	cout << command_length << endl;
 	unsigned char bytes[command_length];
 
 	bytes[0] = 0xFF;
@@ -234,10 +233,24 @@ int ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int 
 
 int ConnectionHandler::findCommandID(string command)
 {
-	if(command == "status")
-		return 7;
-	else if(command == "led")
+	if(command == "eepw")
+		return 1;
+	else if(command == "eepr")
+		return 2;
+	else if(command == "ramw")
 		return 3;
+	else if(command == "ramr")
+		return 4;
+	else if(command == "ijog")
+		return 5;
+	else if(command == "sjog")
+		return 6;
+	else if(command == "stat")
+		return 7;
+	else if(command == "roll")
+		return 8;
+	else if(command == "boot")
+		return 9;
 	else
 		return 0;
 }
