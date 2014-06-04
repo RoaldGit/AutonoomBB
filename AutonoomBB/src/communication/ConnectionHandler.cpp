@@ -159,27 +159,28 @@ void ConnectionHandler::handleTextualCommand(char buffer[], int start_pos, int e
 		current_char = buffer[current_pos];
 	} current_pos++; // Skip the space (0x20)
 
-	cout << command << endl;
+	//	cout << command << endl;
 	unsigned char arguments[(current_pos - end_pos) / 3 + 1];
-	int commandLength = constructBytes(buffer, arguments, current_pos, end_pos) + 5;
+	int argument_length = constructBytes(buffer, arguments, current_pos, end_pos);
+	int command_length =  argument_length + 6;
 
-	unsigned char bytes[commandLength];
+	cout << command_length << endl;
+	unsigned char bytes[command_length];
 
-	if(command == "status")
-	{
-//		unsigned char bytes[7];
-		memcpy(bytes, status, commandLength);
-		bytes[3] = arguments[0];
-		SerialControl::getInstance()->send(bytes);
-	} else if(command == "led")
-	{
-//		unsigned char bytes[7];
-		memcpy(bytes, status, commandLength);
-		bytes[3] = arguments[0];
-		SerialControl::getInstance()->send(bytes);
-	}
+	bytes[0] = 0xFF;
+	bytes[1] = 0xFF;
+	// Set packet length
+	bytes[2] = command_length;
+	// Set address
+	bytes[3] = arguments[0];
+	// Set command ID
+	bytes[4] = findCommandID(command);
 
+	// Add the remaining arguments
+	for(int i = 7; i < command_length; i++)
+		bytes[i] = arguments[i - 6];
 
+	SerialControl::getInstance()->send(bytes);
 }
 
 int ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int start_pos, int end_pos)
@@ -229,6 +230,16 @@ int ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int 
 	} cout << endl;
 
 	return bytes_constructed;
+}
+
+int ConnectionHandler::findCommandID(string command)
+{
+	if(command == "status")
+		return 7;
+	else if(command == "led")
+		return 3;
+	else
+		return 0;
 }
 
 int ConnectionHandler::findBody(char buffer[])
