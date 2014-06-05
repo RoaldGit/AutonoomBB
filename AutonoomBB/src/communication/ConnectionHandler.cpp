@@ -89,50 +89,9 @@ void ConnectionHandler::handleConnection()
  */
 void ConnectionHandler::handleSerialCommand(char buffer[], int start_pos,  int end_pos)
 {
-	// Decode the message. The message, in case of serial data will be built up out of segments of 3 chars.
-	// 2 of these chars represent a hexidecimal value (FF), the 3rd is a space.
-	unsigned char command[(end_pos - start_pos) / 3 + 1];	// Filtered command
-	/*int chars[2];										// 2 bytes making the actual hex value
-	int bytes_made = 0;											// Number of hex values made/extracted so far, index for commands[]
-
-	for(int i = start_pos; i < end_pos;)
-	{
-		// Read 2 characters from the data buffer
-		chars[0] = buffer[i];
-		chars[1] = buffer[i + 1];
-
-		// Substract 48 from both chars, because ASCII - 48 is hex value when working with uppercase letters.
-		// Substract 7 due to some characters between 9 an A
-		for(int k = 0; k < 2; k++)
-		{
-			if(chars[k] > 58)
-				chars[k] = chars[k] - 7;
-
-			chars[k] = chars[k] - 48;
-		}
-
-		// Shift the high bit by 4, turning 0x0F into 0xF0
-		if(chars[1] > 0)
-		{
-			chars[0] = chars[0] << 4;
-			commands[bytes_made] = chars[0] + chars[1];
-		} else
-			commands[bytes_made] = chars[0];
-
-		// Bitwise AND to combine the bits, forming a single hex value
-
-		i += 3;			// Each hex value in the message consists of 2 chars and is seperated with a space.
-						// The next hex value starts 3 positions from the previous one
-		bytes_made++;	// Increase the command index
-	}
-
-	// DEBUG
-	cout << "Command extracted from message: ";
-
-	for(int i = 0; i < bytes_made; i++)
-	{
-		printf("%x ", commands[i]);
-	} cout << endl;*/
+	// Decode the message. The message, in case of serial data will be built up out of segments of 2 or 3 chars.
+	// The last of these chars is a space, the rest represents a singe byte of the command
+	unsigned char command[(end_pos - start_pos) / 3 + 1];
 
 	int command_length = constructBytes(buffer, command, start_pos, end_pos);
 	command[2] = command_length;
@@ -160,12 +119,12 @@ void ConnectionHandler::handleTextualCommand(char buffer[], int start_pos, int e
 		current_char = buffer[current_pos];
 	} current_pos++; // Skip the space (0x20)
 
-	//	cout << command << endl;
 	unsigned char arguments[(current_pos - end_pos) / 3 + 1];
 	int argument_length = constructBytes(buffer, arguments, current_pos, end_pos);
 	int command_length =  argument_length + 6;
 	unsigned char bytes[command_length];
 
+	// Set header
 	bytes[0] = 0xFF;
 	bytes[1] = 0xFF;
 	// Set packet length
@@ -213,12 +172,12 @@ int ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int 
 		} else
 		{
 			bytes[bytes_constructed] = chars[0];
-			i += 2; //
+			i += 2;
 		}
 
 		//i += 3;	// Each hex value in the message consists of 2 chars and is seperated with a space.
 					// The next hex value starts 3 positions from the previous one
-		bytes_constructed++;	// Increase the command index
+		bytes_constructed++;	// Increase the byte index
 	}
 
 	cout << "Bytes extracted from message (" << bytes_constructed << " bytes): ";
