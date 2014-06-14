@@ -22,6 +22,8 @@ private:
 	void handleTextualCommand(char buffer[], int start_pos, int end_pos);
 	int constructBytes(char buffer[], unsigned char bytes[], int start_pos, int end_pos);
 	int findCommandID(std::string command);
+	int findCommandID(char buffer[], int current_pos, int end_pos);
+	std::string findCommand(char buffer[], int current_pos, int end_pos);
 	int findBody(char buffer[]);
 
 	int socket;					// Socket where the data will come in

@@ -69,11 +69,6 @@ void ConnectionHandler::handleConnection()
 	else
 		handleTextualCommand(dataBuffer, start_body, received);
 
-//	unsigned char *command = status;
-//	command[3] = 0x0A;
-//
-//	SerialControl::getInstance()->send(command);
-
 	// Send a reply
 	char *msg = "Message received.\n";
 	ssize_t bytes_sent;
@@ -96,7 +91,7 @@ void ConnectionHandler::handleSerialCommand(char buffer[], int start_pos,  int e
 	int command_length = constructBytes(buffer, command, start_pos, end_pos);
 	command[2] = command_length;
 
-	SerialControl::getInstance()->send(command);
+	SerialControl::getInstance()->send_calc_checksum(command);
 
 	// TODO trim the command. The command array may contain garbage. Needs to be filtered out, maybe separate arrays
 	// for each command to be sent separately or combined into a I/S_JOG command (advanced option). To separate the commands
@@ -108,23 +103,15 @@ void ConnectionHandler::handleSerialCommand(char buffer[], int start_pos,  int e
 
 void ConnectionHandler::handleTextualCommand(char buffer[], int start_pos, int end_pos)
 {
-	int current_pos = start_pos;
-	string command = "";
-	char current_char = buffer[current_pos];
+	string command = findCommand(buffer, start_pos, end_pos);
 
-	while(current_pos < end_pos && current_char != 0x20)
-	{
-		command += current_char;
-		current_pos++;
-		current_char = buffer[current_pos];
-	} current_pos++; // Skip the space (0x20)
+	unsigned char arguments[(start_pos + 4 - end_pos) / 3 + 1]; // start_pos + 4 because the command is 4 chars
+	int argument_length = constructBytes(buffer, arguments, start_pos + 4, end_pos);
 
-	unsigned char arguments[(current_pos - end_pos) / 3 + 1];
-	int argument_length = constructBytes(buffer, arguments, current_pos, end_pos);
 	int command_length =  argument_length + 6;
 	unsigned char bytes[command_length];
 
-	// Set header
+	/*// Set header
 	bytes[0] = 0xFF;
 	bytes[1] = 0xFF;
 	// Set packet length
@@ -132,13 +119,14 @@ void ConnectionHandler::handleTextualCommand(char buffer[], int start_pos, int e
 	// Set address
 	bytes[3] = arguments[0];
 	// Set command ID
-	bytes[4] = findCommandID(command);
+//	bytes[4] = findCommandID(command);
+	bytes[4] = command;
 
 	// Add the remaining arguments
 	for(int i = 7; i < command_length; i++)
-		bytes[i] = arguments[i - 6];
+		bytes[i] = arguments[i - 6];*/
 
-	SerialControl::getInstance()->send(bytes);
+	SerialControl::getInstance()->send(arguments, command, argument_length);
 }
 
 int ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int start_pos, int end_pos)
@@ -212,6 +200,36 @@ int ConnectionHandler::findCommandID(string command)
 		return 9;
 	else
 		return 0;
+}
+
+int ConnectionHandler::findCommandID(char buffer[], int current_pos, int end_pos)
+{
+	string command = "";
+	char current_char = buffer[current_pos];
+
+	while(current_pos < end_pos && current_char != 0x20)
+	{
+		command += current_char;
+		current_pos++;
+		current_char = buffer[current_pos];
+	} current_pos++; // Skip the space (0x20)
+
+	return findCommandID(command);
+}
+
+string ConnectionHandler::findCommand(char buffer[], int current_pos, int end_pos)
+{
+	string command = "";
+	char current_char = buffer[current_pos];
+
+	while(current_pos < end_pos && current_char != 0x20)
+	{
+		command += current_char;
+		current_pos++;
+		current_char = buffer[current_pos];
+	} current_pos++; // Skip the space (0x20)
+
+	return command;
 }
 
 int ConnectionHandler::findBody(char buffer[])
