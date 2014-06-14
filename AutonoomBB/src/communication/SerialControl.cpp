@@ -16,10 +16,13 @@
 #include <errno.h>
 #include <iomanip> // for cout << hex << dec
 #include <pthread.h>
+#include <sys/ioctl.h>
 
 #include "SerialControl.h"
 
 using namespace std;
+
+#define SERIAL_DEBUG = true;
 
 SerialControl* SerialControl::uniqueInstance = NULL;
 
@@ -75,64 +78,34 @@ void SerialControl::setup()
 	cfmakeraw(&tty);
 
 	// Flush Port, then applies attributes
-	tcflush( fileDescriptor, TCIFLUSH );
+	flush_serial_port();
 	tcsetattr(fileDescriptor, TCSANOW, &tty);
 
 	usleep(1000);
-
-
-//	int pos = 950;
-
-//	unsigned char stat[] = {0xFF, 0xFF, 0x07, 0xFE, 0x07, 0xFE, 0x00};
-//
-//	send(stat);
-//	unsigned char reboot[] = {0xFF, 0xFF, 0x07, 0xFD, 0xF2, 0x08, 0xF6};
-//	unsigned char green[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x35, 0x01, 0x01};
-//	unsigned char ledsOff[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x35, 0x01, 0x00};
-//	unsigned char blue[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC2, 0x3C, 0x35, 0x01, 0x02};
-//	unsigned char red[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC4, 0x3A, 0x35, 0x01, 0x04};
-//	unsigned char statusError[] = {0xFF, 0xFF, 0x0B, 0xFD, 0x03, 0xC6, 0x38, 0x30, 0x02, 0x00, 0x00};
-//	unsigned char torque[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xA0, 0x5E, 0x34, 0x01, 0x60};
-//	unsigned char torqueOff[] = {0xFF, 0xFF, 0x0A, 0xFD, 0x03, 0xC0, 0x3E, 0x34, 0x01, 0x00};
-//	unsigned char move[] = {0xFF, 0xFF, 0x0C, 0xFD, 0x06, 0xFE, 0x00, 0x3C, (pos & 0x00FF), (pos & 0xFF00) >> 8, (0x08 & 0xFD), 0xFD};
-//
-//	send(statusError);
-//	sleep(1);
-//	send(torque);
-//
-//	usleep(3000);
-//	send(green);
-//
-//	sleep(1);
-//	send(blue);
-//
-//	sleep(1);
-//	send(red);
-//
-//	sleep(1);
-//	send(ledsOff);
-//
-//	usleep(3000);
-//
-//	sleep(1);
-//	send(move);
-//	sleep(2);
-//
-//	unsigned char incomingBuffer[UART_BUFFER_SIZE];
-//	memset(incomingBuffer, 0, UART_BUFFER_SIZE);
-//
-//	int received = read(fileDescriptor, incomingBuffer, UART_BUFFER_SIZE);
-//	incomingBuffer[received] = 0;
-//	cout << hex << incomingBuffer << dec << endl;
 }
 
-unsigned char* SerialControl::send(unsigned char command[])
+unsigned char* SerialControl::send(unsigned char command[], int length)
+{
+	pthread_mutex_lock(&inUseMutex);
+
+	int bytes_sent = write(fileDescriptor, command, length);
+	if(bytes_sent == -1) cout << errno << endl;
+
+	#ifdef SERIAL_DEBUG
+		print_buffer(command, length);
+	#endif
+
+	//TODO Read
+	return 0;
+}
+
+unsigned char* SerialControl::send_calc_checksum(unsigned char command[])
 {
 	// Lock the mutex so that no other processes can call send()
 	pthread_mutex_lock(&inUseMutex);
 
 	// Calculate the checksums for the command
-	calcChecksums(command);
+	calc_checksums(command);
 
 	// Send the command
 	int bytes = write(fileDescriptor, command, command[2]);
@@ -144,9 +117,7 @@ unsigned char* SerialControl::send(unsigned char command[])
 		cout << hex << (int)command[i] << dec << " ";
 	cout << endl;
 
-//	int totalRead = 0;
-//	int read = -1;
-//	unsigned char incomingBuffer[UART_BUFFER_SIZE];
+	// TODO Read
 
 	// Unlock the mutex so that other processes can call send()
 	pthread_mutex_unlock(&inUseMutex);
@@ -155,7 +126,108 @@ unsigned char* SerialControl::send(unsigned char command[])
 	//return incomingBuffer;
 }
 
-void SerialControl::calcChecksums(unsigned char buffer[])
+unsigned char* SerialControl::send(unsigned char buffer[], string command, int argument_length)
+{
+	// Get the command_id using the string filtered from the message
+	int command_id = find_command_id(command);
+
+	switch(command_id)
+	{
+		case 0: return 0;
+//		case 1: return send_eepw(buffer, argument_length);
+//		case 2: return send_eepr(buffer, argument_length);
+//		case 3: return send_ramw(buffer, argument_length);
+//		case 4: return send_ramr(buffer, argument_length);
+//		case 5: return send_ijog(buffer);
+		case 6: return send_sjog(buffer, argument_length);
+//		case 7: return send_stat(buffer, argument_length);
+//		case 8: return send_roll(buffer);
+//		case 9: return send_boot(buffer);
+		default: send_command(command_id, buffer, argument_length);
+	}
+
+	// TODO Read
+	unsigned char reply[UART_BUFFER_SIZE];
+	memset(reply, 0, UART_BUFFER_SIZE);
+
+	int bytes_read = read(fileDescriptor, reply, UART_BUFFER_SIZE);
+//	int bytes_read = 0;
+	int bytes_available = 0;
+//	while(ioctl(fileDescriptor, FIONREAD, bytes_available) )
+	int tries = 1;
+
+	usleep(100);
+	ioctl(fileDescriptor, FIONREAD, &bytes_available);
+			cout << "Bytes available: " << bytes_available << endl;
+	while(bytes_read == -1 && tries < 10)
+	{
+		ioctl(fileDescriptor, FIONREAD, &bytes_available);
+		cout << "Bytes available: " << bytes_available << endl;
+		//bytes_read = read(fileDescriptor, reply, UART_BUFFER_SIZE);
+		tries++;
+	}
+
+
+	cout << "Received " << bytes_read << " bytes (" << tries << " tries) : ";
+
+	print_buffer(reply, bytes_read);
+
+	return 0;
+}
+
+int SerialControl::find_command_id(string command)
+{
+	if(command == "eepw")
+		return 1;
+	else if(command == "eepr")
+		return 2;
+	else if(command == "ramw")
+		return 3;
+	else if(command == "ramr")
+		return 4;
+	else if(command == "ijog")
+		return 5;
+	else if(command == "sjog")
+		return 6;
+	else if(command == "stat")
+		return 7;
+	else if(command == "roll")
+		return 8;
+	else if(command == "boot")
+		return 9;
+	else if(command == "flsh")
+		flush_serial_port();
+	else
+		return 0;
+	return 0;
+}
+
+unsigned char* SerialControl::send_command(int command_id, unsigned char arguments[], int argument_length)
+{
+	int command_length =  argument_length + 6;
+	unsigned char bytes[command_length];
+	// Set header
+	bytes[0] = 0xFF;
+	bytes[1] = 0xFF;
+	// Set packet length
+	bytes[2] = command_length;
+	// Set address
+	bytes[3] = arguments[0];
+	// Set command ID
+	bytes[4] = command_id;
+	// Add the remaining arguments
+	for(int i = 7; i < command_length; i++)
+		bytes[i] = arguments[i - 6];
+
+	return send_calc_checksum(bytes);
+}
+
+unsigned char* SerialControl::send_sjog(unsigned char arguments[], int argument_length)
+{
+	return 0;
+}
+
+void SerialControl::calc_checksums(unsigned char buffer[])
 {
 	int packSize =  buffer[2];
 	unsigned char checksum1 = (buffer[2] ^ buffer[3] ^ buffer[4]);
@@ -166,4 +238,22 @@ void SerialControl::calcChecksums(unsigned char buffer[])
 
 	buffer[5] = checksum1 &= 0xFE;
 	buffer[6] = ~(checksum1) & 0xFE;
+}
+
+void SerialControl::print_buffer(unsigned char buffer[], int length)
+{
+	for(int i = 0; i < length; i++)
+		cout << hex << (int)buffer[i] << dec << " ";
+	cout << endl;
+}
+
+void SerialControl::flush_serial_port()
+{
+	// Flush the serial port
+
+	#ifdef SERIAL_DEBUG
+	cout << "Flushing serial port" << endl;
+	#endif
+
+	tcflush( fileDescriptor, TCIFLUSH );
 }
