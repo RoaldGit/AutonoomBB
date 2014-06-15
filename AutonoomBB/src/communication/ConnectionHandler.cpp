@@ -82,7 +82,7 @@ void ConnectionHandler::handleConnection()
 /*
  * Handle a message only containing a serial command (FF FF 07 FD 07 00 00 = stat of Servo 253)
  */
-void ConnectionHandler::handleSerialCommand(char buffer[], int start_pos,  int end_pos)
+unsigned char* ConnectionHandler::handleSerialCommand(char buffer[], int start_pos,  int end_pos)
 {
 	// Decode the message. The message, in case of serial data will be built up out of segments of 2 or 3 chars.
 	// The last of these chars is a space, the rest represents a singe byte of the command
@@ -99,9 +99,10 @@ void ConnectionHandler::handleSerialCommand(char buffer[], int start_pos,  int e
 	// a new command should follow.
 	// EDIT: Double commands need to be filtered, because SerialControl::send() calculates a checksum. Additional
 	// commands would be sent without a checksum == bad
+	return 0;
 }
 
-void ConnectionHandler::handleTextualCommand(char buffer[], int start_pos, int end_pos)
+unsigned char* ConnectionHandler::handleTextualCommand(char buffer[], int start_pos, int end_pos)
 {
 	string command = findCommand(buffer, start_pos, end_pos);
 
@@ -111,22 +112,9 @@ void ConnectionHandler::handleTextualCommand(char buffer[], int start_pos, int e
 	int command_length =  argument_length + 6;
 	unsigned char bytes[command_length];
 
-	/*// Set header
-	bytes[0] = 0xFF;
-	bytes[1] = 0xFF;
-	// Set packet length
-	bytes[2] = command_length;
-	// Set address
-	bytes[3] = arguments[0];
-	// Set command ID
-//	bytes[4] = findCommandID(command);
-	bytes[4] = command;
-
-	// Add the remaining arguments
-	for(int i = 7; i < command_length; i++)
-		bytes[i] = arguments[i - 6];*/
-
 	SerialControl::getInstance()->send(arguments, command, argument_length);
+
+	return 0;
 }
 
 int ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int start_pos, int end_pos)

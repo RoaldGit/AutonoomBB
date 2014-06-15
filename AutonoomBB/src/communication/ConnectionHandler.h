@@ -18,8 +18,8 @@ private:
 	static void* startup(void *);
 
 	void handleConnection();
-	void handleSerialCommand(char buffer[], int start_pos, int end_pos);
-	void handleTextualCommand(char buffer[], int start_pos, int end_pos);
+	unsigned char* handleSerialCommand(char buffer[], int start_pos, int end_pos);
+	unsigned char* handleTextualCommand(char buffer[], int start_pos, int end_pos);
 	int constructBytes(char buffer[], unsigned char bytes[], int start_pos, int end_pos);
 	int findCommandID(std::string command);
 	int findCommandID(char buffer[], int current_pos, int end_pos);
