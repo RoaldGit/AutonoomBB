@@ -229,6 +229,54 @@ unsigned char* SerialControl::send_command(int command_id, unsigned char argumen
 
 unsigned char* SerialControl::send_ijog(unsigned char arguments[], int argument_length)
 {
+	/*	IJOG commands are 12 bytes long FF FF C X 5 S S P G G L X
+	 * FF FF header
+	 * C is length
+	 * X is address
+	 * 5 is IJOG command
+	 * S S are the checksums
+	 * P is playtime
+	 * G G is goal pos (LSB and MSB)
+	 * L is set (Mostly used for led)
+	 *
+	 * arguments[] contains the arguments in the following format:
+	 * P G G L X
+	 * P is playtime
+	 * G G is goal pos (LSB and MSB)
+	 * L is set
+	 * X is address
+	 * P G G L X can be repeated up to 43 times according to the HerkuleX docs.
+	 * This function will split the incoming arguments into seperate packets, because the servo's apparently can't
+	 * recognize the combined command. This is suspected to be due to the command being for the official
+	 * servo controller of Dongbu
+	 */
+	unsigned char bytes[12];
+	/*
+	 * Each packet is 5 arguments
+	 */
+	int packets = argument_length / 5;
+
+	cout << "Sending " << packets << " IJOG packets" << endl;
+
+	for(int i = 0; i < packets; i++)
+	{
+		// Set header
+		bytes[0] = 0xFF;
+		bytes[1] = 0xFF;
+		// Set packet length
+		bytes[2] = 12;
+		// Set address
+		bytes[3] = arguments[4 + i * 5];
+		// Set command ID
+		bytes[4] = 6;
+		// Set the remaining arguments (LSB, MSB, SET and Address)
+		for(int k = 0; k < 5; k++)
+			bytes[7 + k] = arguments[k + i * 5];
+
+		// TODO Maybe turn on torque before sending the command
+		send_calc_checksum(bytes);
+	}
+
 	return 0;
 }
 
@@ -281,7 +329,7 @@ unsigned char* SerialControl::send_sjog(unsigned char arguments[], int argument_
 		for(int k = 1; k < 5; k++)
 			bytes[7 + k] = arguments[k + i * 4];
 
-		// turn on torque
+		// TODO Maybe turn on torque before sending the command
 		send_calc_checksum(bytes);
 	}
 
