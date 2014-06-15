@@ -22,7 +22,6 @@ public:
 	void restoreDefault();
 	void setup();
 
-//	unsigned char* send(unsigned char buffer[], int length);
 	unsigned char* send_calc_checksum(unsigned char buffer[]);
 	unsigned char* send(unsigned char arguments[], std::string command, int argument_length);
 
@@ -39,6 +38,8 @@ private:
 	unsigned char* send_roll(unsigned char arguments[]);
 	unsigned char* send_boot(unsigned char arguments[]);
 	unsigned char* send_command(int command_id, unsigned char arguments[], int argument_length);
+
+	unsigned char* read_serial(int bytes_expected);
 
 	void print_buffer(unsigned char buffer[], int lenght);
 	void calc_checksums(unsigned char buffer[]);

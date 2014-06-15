@@ -136,11 +136,15 @@ unsigned char* SerialControl::send(unsigned char arguments[], string command, in
 				break;
 	}
 
-	// TODO Read
+	return read_serial(expected_reply_size);
+}
+
+unsigned char* SerialControl::read_serial(int bytes_expected)
+{
 	int bytes_available = 0;
 	int bytes_read = 0;
 
-	while(bytes_available < expected_reply_size)
+	while(bytes_available < bytes_expected)
 	{
 		ioctl(fileDescriptor, FIONREAD, &bytes_available);
 		usleep(1);
@@ -151,11 +155,11 @@ unsigned char* SerialControl::send(unsigned char arguments[], string command, in
 
 	bytes_read = read(fileDescriptor, reply, bytes_available);
 
-	cout << "Bytes available: " << bytes_available << "|Bytes expected: " << expected_reply_size << "|Read " << bytes_read << " bytes : ";
+	cout << "Bytes available: " << bytes_available << "|Bytes expected: " << bytes_expected << "|Read " << bytes_read << " bytes : ";
 
 	#ifdef SERIAL_DEBUG
 	print_buffer(reply, bytes_read);
-	#endif SERIAL_DEBUG
+	#endif
 
 	return reply;
 }
@@ -234,11 +238,10 @@ void SerialControl::print_buffer(unsigned char buffer[], int length)
 
 void SerialControl::flush_serial_port()
 {
-	// Flush the serial port
-
 	#ifdef SERIAL_DEBUG
 	cout << "Flushing serial port" << endl;
 	#endif
 
+	// Flush the serial port
 	tcflush( fileDescriptor, TCIFLUSH );
 }
