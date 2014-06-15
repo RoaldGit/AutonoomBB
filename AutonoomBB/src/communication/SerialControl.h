@@ -25,6 +25,7 @@ public:
 	unsigned char* send_calc_checksum(unsigned char buffer[]);
 	unsigned char* send(unsigned char arguments[], std::string command, int argument_length);
 
+	static void print_buffer(unsigned char buffer[], int lenght);
 	int find_command_id(std::string command);
 private:
 	SerialControl();
@@ -34,7 +35,6 @@ private:
 
 	unsigned char* read_serial(int bytes_expected);
 
-	void print_buffer(unsigned char buffer[], int lenght);
 	void calc_checksums(unsigned char buffer[]);
 	void flush_serial_port();
 
