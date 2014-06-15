@@ -53,7 +53,7 @@ void ConnectionHandler::handleConnection()
 
 	// Receive message
 	received = recv(socket, dataBuffer, TCP_BUFFER_SIZE, 0);
-	cout << "sending back a message..."  << endl;
+	cout << "Sending back a message..."  << endl;
 	if(received == 0) cout << "host shut down" << endl;
 	if(received == -1) cout << "recv error" << endl;
 
@@ -72,11 +72,12 @@ void ConnectionHandler::handleConnection()
 		reply = handleTextualCommand(dataBuffer, start_body, received);
 
 	// Send a reply
-	char *msg = "Message received.\n";
-	ssize_t bytes_sent;
+//	char *msg = "Message received.\n";
+	int bytes_sent;
 //	bytes_sent = send(socket, msg, strlen(msg), 0);
 	bytes_sent = send(socket, reply, reply[2], 0);
-	cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
+//	cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
+	cout << "Replied with " << bytes_sent << " bytes." << endl;
 
 	// Close the socket descriptor
 	close(socket);
@@ -109,8 +110,8 @@ unsigned char* ConnectionHandler::handleTextualCommand(char buffer[], int start_
 {
 	string command = findCommand(buffer, start_pos, end_pos);
 
-	unsigned char arguments[(start_pos + 4 - end_pos) / 3 + 1]; // start_pos + 4 because the command is 4 chars
-	int argument_length = constructBytes(buffer, arguments, start_pos + 4, end_pos);
+	unsigned char arguments[(start_pos + 5 - end_pos) / 3 + 1]; // start_pos + 5 because the command is 4 chars and a space
+	int argument_length = constructBytes(buffer, arguments, start_pos + 5, end_pos);
 
 	return SerialControl::getInstance()->send(arguments, command, argument_length);
 }
@@ -154,7 +155,7 @@ int ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int 
 		bytes_constructed++;	// Increase the byte index
 	}
 
-	cout << "Bytes extracted from message (" << bytes_constructed << " bytes): ";
+	cout << endl << "Bytes extracted from message (" << bytes_constructed << " bytes): ";
 
 	for(int i = 0; i < bytes_constructed; i++)
 	{
