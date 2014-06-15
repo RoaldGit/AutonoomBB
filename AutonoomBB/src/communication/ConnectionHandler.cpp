@@ -64,7 +64,7 @@ void ConnectionHandler::handleConnection()
 	// Find the start of the data (skip over all the headers)
 	int start_body = findBody(dataBuffer);
 
-	unsigned char *reply;
+	unsigned char *reply = 0;
 
 	if(dataBuffer[start_body] == 'F')
 		reply = handleSerialCommand(dataBuffer, start_body, received);
@@ -74,10 +74,18 @@ void ConnectionHandler::handleConnection()
 	// Send a reply
 //	char *msg = "Message received.\n";
 	int bytes_sent;
-//	bytes_sent = send(socket, msg, strlen(msg), 0);
-	bytes_sent = send(socket, reply, reply[2], 0);
-//	cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
-	cout << "Replied with " << bytes_sent << " bytes." << endl;
+//	bytes_sent = send(socket, msg, strlen(msg), 0);'
+	if(reply != 0)
+	{
+		bytes_sent = send(socket, reply, reply[2], 0);
+	} else
+	{
+		char *no_reply = "No reply received.";
+		bytes_sent = send(socket, no_reply, strlen(no_reply), 0);
+		cout << "No reply could be read from UART. ";
+	} cout << "Replied with " << bytes_sent << " bytes." << endl;
+
+	//	cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
 
 	// Close the socket descriptor
 	close(socket);
@@ -157,10 +165,10 @@ int ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int 
 
 	cout << endl << "Bytes extracted from message (" << bytes_constructed << " bytes): ";
 
-	for(int i = 0; i < bytes_constructed; i++)
-	{
-		printf("%x ", bytes[i]);
-	} cout << endl;
+//	for(int i = 0; i < bytes_constructed; i++)
+//		printf("%x ", bytes[i]);
+//	cout << endl;
+	SerialControl::print_buffer(bytes, bytes_constructed);
 
 	return bytes_constructed;
 }
