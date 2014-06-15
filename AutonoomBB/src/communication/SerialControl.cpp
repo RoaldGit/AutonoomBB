@@ -22,7 +22,8 @@
 
 using namespace std;
 
-#define SERIAL_DEBUG = true;
+#define SERIAL_DEBUG true
+#define SERIAL_READ_TIMEOUT 10000
 
 SerialControl* SerialControl::uniqueInstance = NULL;
 
@@ -97,10 +98,10 @@ unsigned char* SerialControl::send_calc_checksum(unsigned char command[])
 	if(bytes == -1) cout << errno << endl;
 
 	// Print that a command has been sent
+	#ifdef SERIAL_DEBUG
 	cout << "Sent " << bytes << " bytes: ";
-	for(int i = 0; i < command[2]; i++)
-		cout << hex << (int)command[i] << dec << " ";
-	cout << endl;
+	print_buffer(command, command[2]);
+	#endif
 
 	// TODO Read
 
@@ -120,17 +121,11 @@ unsigned char* SerialControl::send(unsigned char arguments[], string command, in
 	switch(command_id)
 	{
 		case 0: return 0;
-//		case 1: return send_eepw(buffer, argument_length);
-//		case 2: return send_eepr(buffer, argument_length);
-//		case 3: return send_ramw(buffer, argument_length);
-//		case 4: return send_ramr(buffer, argument_length);
-//		case 5: return send_ijog(buffer);
+		case 5: return send_ijog(arguments, argument_length);
 		case 6: return send_sjog(arguments, argument_length);
 		case 7: expected_reply_size = 9; // Default bytes such as header, +2 status bytes
 				send_command(command_id, arguments, argument_length);
 				break;
-//		case 8: return send_roll(buffer);
-//		case 9: return send_boot(buffer);
 		default:expected_reply_size = 11 + arguments[2]; // Same as case 7, +2 for register and length, + number of bytes requested
 				send_command(command_id, arguments, argument_length);
 				break;
@@ -143,11 +138,13 @@ unsigned char* SerialControl::read_serial(int bytes_expected)
 {
 	int bytes_available = 0;
 	int bytes_read = 0;
+	int timeout = 0;
 
-	while(bytes_available < bytes_expected)
+	while(bytes_available < bytes_expected && timeout < SERIAL_READ_TIMEOUT)
 	{
 		ioctl(fileDescriptor, FIONREAD, &bytes_available);
 		usleep(1);
+		timeout++;
 	}
 
 	unsigned char reply[bytes_available];
@@ -155,9 +152,8 @@ unsigned char* SerialControl::read_serial(int bytes_expected)
 
 	bytes_read = read(fileDescriptor, reply, bytes_available);
 
-	cout << "Bytes available: " << bytes_available << "|Bytes expected: " << bytes_expected << "|Read " << bytes_read << " bytes : ";
-
 	#ifdef SERIAL_DEBUG
+	cout << "Bytes available: " << bytes_available << "|Bytes expected: " << bytes_expected << "|Read " << bytes_read << " bytes : ";
 	print_buffer(reply, bytes_read);
 	#endif
 
@@ -211,8 +207,64 @@ unsigned char* SerialControl::send_command(int command_id, unsigned char argumen
 	return send_calc_checksum(bytes);
 }
 
+unsigned char* SerialControl::send_ijog(unsigned char arguments[], int argument_length)
+{
+	return 0;
+}
+
 unsigned char* SerialControl::send_sjog(unsigned char arguments[], int argument_length)
 {
+	/*	SJOG commands are 12 bytes long FF FF C X 6 S S P G G L X
+	 * FF FF header
+	 * C is length
+	 * X is address
+	 * 6 is SJOG command
+	 * S S are the checksums
+	 * P is playtime
+	 * G G is goal pos (LSB and MSB)
+	 * L is set (Mostly used for led)
+	 *
+	 * arguments[] contains the arguments in the following format:
+	 * P G G L X
+	 * P is playtime
+	 * G G is goal pos (LSB and MSB)
+	 * L is set
+	 * X is address
+	 * G G L X can be repeated up to 53 times according to the HerkuleX docs.
+	 * This function will split the incoming arguments into seperate packets, because the servo's apparently can't
+	 * recognize the combined command. This is suspected to be due to the command being for the official
+	 * servo controller of Dongbu
+	 */
+	unsigned char bytes[12];
+	/*
+	 * Playtime is used in every command, so it doesn't count towards the number of packets to send.
+	 * Each packet is 4 arguments
+	 */
+	int packets = (argument_length - 1) / 4;
+	int playtime = arguments[0];
+//	int argument_set = packets * 4;
+
+	cout << "Sending " << packets << " SJOG packets" << endl;
+
+	for(int i = 0; i < packets; i++)
+	{
+		// Set header
+		bytes[0] = 0xFF;
+		bytes[1] = 0xFF;
+		// Set packet length
+		bytes[2] = 12;
+		// Set address
+		bytes[3] = arguments[4 + i * 4];
+		// Set command ID
+		bytes[4] = 6;
+		bytes[7] = playtime;
+		// Set the remaining arguments (LSB, MSB, SET and Address)
+		for(int k = 1; k < 5; k++)
+			bytes[7 + k] = arguments[k + i * 4];
+
+		send_calc_checksum(bytes);
+	}
+
 	return 0;
 }
 

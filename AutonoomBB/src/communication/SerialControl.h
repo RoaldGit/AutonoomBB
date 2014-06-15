@@ -28,15 +28,8 @@ public:
 	int find_command_id(std::string command);
 private:
 	SerialControl();
-	unsigned char* send_eepw(unsigned char arguments[], int argument_length);
-	unsigned char* send_eepr(unsigned char arguments[], int argument_length);
-	unsigned char* send_ramw(unsigned char arguments[], int argument_length);
-	unsigned char* send_ramr(unsigned char arguments[], int argument_length);
-	unsigned char* send_ijog(unsigned char arguments[]);
+	unsigned char* send_ijog(unsigned char arguments[], int argument_length);
 	unsigned char* send_sjog(unsigned char arguments[], int argument_length);
-	unsigned char* send_stat(unsigned char arguments[]);
-	unsigned char* send_roll(unsigned char arguments[]);
-	unsigned char* send_boot(unsigned char arguments[]);
 	unsigned char* send_command(int command_id, unsigned char arguments[], int argument_length);
 
 	unsigned char* read_serial(int bytes_expected);
