@@ -84,21 +84,6 @@ void SerialControl::setup()
 	usleep(1000);
 }
 
-unsigned char* SerialControl::send(unsigned char command[], int length)
-{
-	pthread_mutex_lock(&inUseMutex);
-
-	int bytes_sent = write(fileDescriptor, command, length);
-	if(bytes_sent == -1) cout << errno << endl;
-
-	#ifdef SERIAL_DEBUG
-		print_buffer(command, length);
-	#endif
-
-	//TODO Read
-	return 0;
-}
-
 unsigned char* SerialControl::send_calc_checksum(unsigned char command[])
 {
 	// Lock the mutex so that no other processes can call send()
@@ -126,10 +111,11 @@ unsigned char* SerialControl::send_calc_checksum(unsigned char command[])
 	//return incomingBuffer;
 }
 
-unsigned char* SerialControl::send(unsigned char buffer[], string command, int argument_length)
+unsigned char* SerialControl::send(unsigned char arguments[], string command, int argument_length)
 {
 	// Get the command_id using the string filtered from the message
 	int command_id = find_command_id(command);
+	int expected_reply_size = 0;
 
 	switch(command_id)
 	{
@@ -139,40 +125,39 @@ unsigned char* SerialControl::send(unsigned char buffer[], string command, int a
 //		case 3: return send_ramw(buffer, argument_length);
 //		case 4: return send_ramr(buffer, argument_length);
 //		case 5: return send_ijog(buffer);
-		case 6: return send_sjog(buffer, argument_length);
-//		case 7: return send_stat(buffer, argument_length);
+		case 6: return send_sjog(arguments, argument_length);
+		case 7: expected_reply_size = 9; // Default bytes such as header, +2 status bytes
+				send_command(command_id, arguments, argument_length);
+				break;
 //		case 8: return send_roll(buffer);
 //		case 9: return send_boot(buffer);
-		default: send_command(command_id, buffer, argument_length);
+		default:expected_reply_size = 11 + arguments[2]; // Same as case 7, +2 for register and length, + number of bytes requested
+				send_command(command_id, arguments, argument_length);
+				break;
 	}
 
 	// TODO Read
-	unsigned char reply[UART_BUFFER_SIZE];
-	memset(reply, 0, UART_BUFFER_SIZE);
-
-	int bytes_read = read(fileDescriptor, reply, UART_BUFFER_SIZE);
-//	int bytes_read = 0;
 	int bytes_available = 0;
-//	while(ioctl(fileDescriptor, FIONREAD, bytes_available) )
-	int tries = 1;
+	int bytes_read = 0;
 
-	usleep(100);
-	ioctl(fileDescriptor, FIONREAD, &bytes_available);
-			cout << "Bytes available: " << bytes_available << endl;
-	while(bytes_read == -1 && tries < 10)
+	while(bytes_available < expected_reply_size)
 	{
 		ioctl(fileDescriptor, FIONREAD, &bytes_available);
-		cout << "Bytes available: " << bytes_available << endl;
-		//bytes_read = read(fileDescriptor, reply, UART_BUFFER_SIZE);
-		tries++;
+		usleep(1);
 	}
 
+	unsigned char reply[bytes_available];
+	memset(reply, 0, bytes_available);
 
-	cout << "Received " << bytes_read << " bytes (" << tries << " tries) : ";
+	bytes_read = read(fileDescriptor, reply, bytes_available);
 
+	cout << "Bytes available: " << bytes_available << "|Bytes expected: " << expected_reply_size << "|Read " << bytes_read << " bytes : ";
+
+	#ifdef SERIAL_DEBUG
 	print_buffer(reply, bytes_read);
+	#endif SERIAL_DEBUG
 
-	return 0;
+	return reply;
 }
 
 int SerialControl::find_command_id(string command)

@@ -22,9 +22,9 @@ public:
 	void restoreDefault();
 	void setup();
 
-	unsigned char* send(unsigned char buffer[], int length);
+//	unsigned char* send(unsigned char buffer[], int length);
 	unsigned char* send_calc_checksum(unsigned char buffer[]);
-	unsigned char* send(unsigned char buffer[], std::string command, int argument_length);
+	unsigned char* send(unsigned char arguments[], std::string command, int argument_length);
 
 	int find_command_id(std::string command);
 private:
@@ -35,7 +35,7 @@ private:
 	unsigned char* send_ramr(unsigned char arguments[], int argument_length);
 	unsigned char* send_ijog(unsigned char arguments[]);
 	unsigned char* send_sjog(unsigned char arguments[], int argument_length);
-	unsigned char* send_stat(unsigned char arguments[], int argument_length);
+	unsigned char* send_stat(unsigned char arguments[]);
 	unsigned char* send_roll(unsigned char arguments[]);
 	unsigned char* send_boot(unsigned char arguments[]);
 	unsigned char* send_command(int command_id, unsigned char arguments[], int argument_length);
