@@ -64,15 +64,18 @@ void ConnectionHandler::handleConnection()
 	// Find the start of the data (skip over all the headers)
 	int start_body = findBody(dataBuffer);
 
+	unsigned char *reply;
+
 	if(dataBuffer[start_body] == 'F')
-		handleSerialCommand(dataBuffer, start_body, received);
+		reply = handleSerialCommand(dataBuffer, start_body, received);
 	else
-		handleTextualCommand(dataBuffer, start_body, received);
+		reply = handleTextualCommand(dataBuffer, start_body, received);
 
 	// Send a reply
 	char *msg = "Message received.\n";
 	ssize_t bytes_sent;
-	bytes_sent = send(socket, msg, strlen(msg), 0);
+//	bytes_sent = send(socket, msg, strlen(msg), 0);
+	bytes_sent = send(socket, reply, reply[2], 0);
 	cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
 
 	// Close the socket descriptor
@@ -109,12 +112,7 @@ unsigned char* ConnectionHandler::handleTextualCommand(char buffer[], int start_
 	unsigned char arguments[(start_pos + 4 - end_pos) / 3 + 1]; // start_pos + 4 because the command is 4 chars
 	int argument_length = constructBytes(buffer, arguments, start_pos + 4, end_pos);
 
-	int command_length =  argument_length + 6;
-	unsigned char bytes[command_length];
-
-	SerialControl::getInstance()->send(arguments, command, argument_length);
-
-	return 0;
+	return SerialControl::getInstance()->send(arguments, command, argument_length);
 }
 
 int ConnectionHandler::constructBytes(char buffer[], unsigned char bytes[], int start_pos, int end_pos)
