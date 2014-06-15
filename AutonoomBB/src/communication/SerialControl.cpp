@@ -109,7 +109,6 @@ unsigned char* SerialControl::send_calc_checksum(unsigned char command[])
 	pthread_mutex_unlock(&inUseMutex);
 
 	return 0;
-	//return incomingBuffer;
 }
 
 unsigned char* SerialControl::send(unsigned char arguments[], string command, int argument_length)
@@ -120,13 +119,34 @@ unsigned char* SerialControl::send(unsigned char arguments[], string command, in
 
 	switch(command_id)
 	{
+		/*
+		 * Using Ack policy 1, the servo's will only send a reply on read and ack requests.
+		 * Ack requests return a 9 byte long packet
+		 * Read requests return a 11 bytes default data and the number of bytes requested.
+		 *
+		 * Ack request example:
+		 * Request:	FF FF 7 A  7 A F4					[Ack request to servo 0x0A (10)]
+		 * Reply: 	FF FF 9 A 47 6 F8 0 42				[Ack reply from servo 0x0A (10)]
+		 *
+		 * Read request example:
+		 * Request:	FF FF 9 A  4 32 CC 34 1				[Request to servo 0x0A (10), read 1 byte from register 34 (Torque policy)]
+		 * Reply: 	FF FF C A 44 54 AA 34 1 60 0 42		[Reply from servo 0x0A (10), 1 byte (60) has been read from register 34]
+		 *
+		 * Last 2 bytes of every Ack Packet contain status error(1 byte) and status detail (1 byte)
+		 */
 		case 0: return 0;
+		case 1: return send_command(command_id, arguments, argument_length);
+				break;
+		case 3: return send_command(command_id, arguments, argument_length);
+				break;
 		case 5: return send_ijog(arguments, argument_length);
+				break;
 		case 6: return send_sjog(arguments, argument_length);
-		case 7: expected_reply_size = 9; // Default bytes such as header, +2 status bytes
+				break;
+		case 7: expected_reply_size = 9;
 				send_command(command_id, arguments, argument_length);
 				break;
-		default:expected_reply_size = 11 + arguments[2]; // Same as case 7, +2 for register and length, + number of bytes requested
+		default:expected_reply_size = 11 + arguments[2];
 				send_command(command_id, arguments, argument_length);
 				break;
 	}
@@ -242,7 +262,6 @@ unsigned char* SerialControl::send_sjog(unsigned char arguments[], int argument_
 	 */
 	int packets = (argument_length - 1) / 4;
 	int playtime = arguments[0];
-//	int argument_set = packets * 4;
 
 	cout << "Sending " << packets << " SJOG packets" << endl;
 
@@ -262,6 +281,7 @@ unsigned char* SerialControl::send_sjog(unsigned char arguments[], int argument_
 		for(int k = 1; k < 5; k++)
 			bytes[7 + k] = arguments[k + i * 4];
 
+		// turn on torque
 		send_calc_checksum(bytes);
 	}
 
