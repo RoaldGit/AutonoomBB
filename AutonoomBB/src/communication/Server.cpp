@@ -153,16 +153,17 @@ void Server::run()
 		select(listenSocket + 1, &sockets, NULL, NULL, &timeoutValue);
 		if(FD_ISSET(listenSocket, &sockets))
 		{
-		// Accept incoming connection and set timeout value (RCVTIMEO)
-		newSocket = accept(listenSocket, (struct sockaddr *)&their_addr, &addr_size);
-		status = setsockopt(newSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeoutValue, sizeof(struct timeval));
+			// Accept incoming connection and set timeout value (RCVTIMEO)
+			newSocket = accept(listenSocket, (struct sockaddr *)&their_addr, &addr_size);
+			status = setsockopt(newSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeoutValue, sizeof(struct timeval));
 
-		if (newSocket == -1) cout << "Accept returned " << errno << endl;
-		else
-		{
-			ConnectionHandler* newConnection = new ConnectionHandler(newSocket);
-			newConnection->start();
-		}}
+			if (newSocket == -1) cout << "Accept returned " << errno << endl;
+			else
+			{
+				ConnectionHandler* newConnection = new ConnectionHandler(newSocket);
+				newConnection->start();
+			}
+		}
 	}
 
 	// Close the socket descriptor and free the memory used by the host info list
