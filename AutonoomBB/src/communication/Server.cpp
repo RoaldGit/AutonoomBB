@@ -162,27 +162,6 @@ void Server::run()
 		{
 			ConnectionHandler* newConnection = new ConnectionHandler(newSocket);
 			newConnection->start();
-			/*// Bytes received and data buffer
-			ssize_t received;
-			char dataBuffer[TCP_BUFFER_SIZE];
-
-			// Receive message
-			received = recv(newSocket, dataBuffer, TCP_BUFFER_SIZE, 0);
-			if(received == 0) cout << "host shut down" << endl;
-			if(received == -1) cout << "recv error" << endl;
-
-			// Add end string character for printing, and print received message
-			dataBuffer[received] = '\0';
-			cout << "Received " << received << " bytes|Message: " << endl << "------" << endl << dataBuffer << "------" << endl;
-
-			// Send a reply
-			char *msg = "Connected.\n";
-			ssize_t bytes_sent;
-			bytes_sent = send(newSocket, msg, strlen(msg), 0);
-			cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
-
-			// Close the socket descriptor
-			close(newSocket);*/
 		}}
 	}
 
