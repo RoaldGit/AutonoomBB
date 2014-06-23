@@ -151,7 +151,8 @@ unsigned char* SerialControl::send(unsigned char arguments[], string command, in
 				break;
 	}
 
-	return read_serial(expected_reply_size);
+	unsigned char* reply = read_serial(expected_reply_size);
+	return reply;
 }
 
 unsigned char* SerialControl::read_serial(int bytes_expected)

@@ -64,7 +64,7 @@ void ConnectionHandler::handleConnection()
 	// Find the start of the data (skip over all the headers)
 	int start_body = findBody(dataBuffer);
 
-	unsigned char *reply = 0;
+	const unsigned char *reply = 0;
 
 	if(dataBuffer[start_body] == 'F')
 		reply = handleSerialCommand(dataBuffer, start_body, received);
@@ -72,20 +72,17 @@ void ConnectionHandler::handleConnection()
 		reply = handleTextualCommand(dataBuffer, start_body, received);
 
 	// Send a reply
-//	char *msg = "Message received.\n";
 	int bytes_sent;
-//	bytes_sent = send(socket, msg, strlen(msg), 0);'
+
 	if(reply != 0)
 	{
 		bytes_sent = send(socket, reply, reply[2], 0);
 	} else
 	{
-		char *no_reply = "No reply received.";
+		char* no_reply = "No reply received.";
 		bytes_sent = send(socket, no_reply, strlen(no_reply), 0);
 		cout << "No reply could be read from UART. ";
 	} cout << "Replied with " << bytes_sent << " bytes." << endl;
-
-	//	cout << "Message sent: " << msg << "\tBytes sent: " << bytes_sent << endl;
 
 	// Close the socket descriptor
 	close(socket);
