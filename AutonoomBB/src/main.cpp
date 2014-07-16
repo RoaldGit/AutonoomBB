@@ -21,7 +21,9 @@ int main() {
 	pthread_t serverThread = server->start();
 
 	SerialControl *serialTest = SerialControl::getInstance();
-	serialTest->setup();
+
+	serialTest -> getThread();
+//	serialTest->setup();
 
 	//sleep(20);
 	//server->stop();

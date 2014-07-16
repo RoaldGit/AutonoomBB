@@ -18,6 +18,9 @@ class SerialControl {
 public:
 	virtual ~SerialControl();
 	static SerialControl* getInstance();
+	static void* start(void *);
+
+	pthread_t getThread();
 
 	void restoreDefault();
 	void setup();
@@ -27,11 +30,17 @@ public:
 
 	static void print_buffer(unsigned char buffer[], int lenght);
 	int find_command_id(std::string command);
+
 private:
 	SerialControl();
+
 	unsigned char* send_ijog(unsigned char arguments[], int argument_length);
 	unsigned char* send_sjog(unsigned char arguments[], int argument_length);
 	unsigned char* send_command(int command_id, unsigned char arguments[], int argument_length);
+
+	void execute_step();
+	void init_stand();
+	void execute_turn()
 
 	unsigned char* read_serial(int bytes_expected);
 
@@ -39,7 +48,7 @@ private:
 	void flush_serial_port();
 
 	int fileDescriptor;		// Pointer to the device file
-	pthread_t serialThread;	// Thread controlling serial trafic
+	static pthread_t serialThread;	// Thread controlling serial trafic
 	pthread_mutex_t inUseMutex; 	// Mutex used to lock the serial control so that one thread can write a command
 									// and read the reply without being interrupted.
 	static SerialControl *uniqueInstance;	// Unique instance of this class, to be used by all.

@@ -26,9 +26,10 @@ using namespace std;
 #define SERIAL_READ_TIMEOUT 10000
 
 SerialControl* SerialControl::uniqueInstance = NULL;
+pthread_t SerialControl::serialThread = NULL;
 
 SerialControl::SerialControl()
-	:fileDescriptor(0), serialThread(0), inUseMutex(PTHREAD_MUTEX_INITIALIZER)
+	:fileDescriptor(0), inUseMutex(PTHREAD_MUTEX_INITIALIZER)
 {
 
 }
@@ -41,8 +42,24 @@ SerialControl::~SerialControl()
 SerialControl* SerialControl::getInstance()
 {
 	if(!uniqueInstance)
+	{
 		uniqueInstance = new SerialControl;
+		uniqueInstance -> setup();
+		pthread_create(&serialThread, NULL, &SerialControl::start, NULL);
+	}
+
+//	return reinterpret_cast<SerialControl* >(serialThread);
 	return uniqueInstance;
+}
+
+pthread_t SerialControl::getThread()
+{
+	return serialThread;
+}
+
+void *SerialControl::start(void *obj)
+{
+//	reinterpret_cast<SerialControl *>(obj)->setup();
 }
 
 void SerialControl::setup()
@@ -88,7 +105,7 @@ void SerialControl::setup()
 unsigned char* SerialControl::send_calc_checksum(unsigned char command[])
 {
 	// Lock the mutex so that no other processes can call send()
-	pthread_mutex_lock(&inUseMutex);
+//	pthread_mutex_lock(&inUseMutex);
 
 	// Calculate the checksums for the command
 	calc_checksums(command);
@@ -103,10 +120,8 @@ unsigned char* SerialControl::send_calc_checksum(unsigned char command[])
 	print_buffer(command, command[2]);
 	#endif
 
-	// TODO Read
-
 	// Unlock the mutex so that other processes can call send()
-	pthread_mutex_unlock(&inUseMutex);
+//	pthread_mutex_unlock(&inUseMutex);
 
 	return 0;
 }
@@ -116,6 +131,9 @@ unsigned char* SerialControl::send(unsigned char arguments[], string command, in
 	// Get the command_id using the string filtered from the message
 	int command_id = find_command_id(command);
 	int expected_reply_size = 0;
+
+	// Flush serial of any remaining bites
+	flush_serial_port();
 
 	switch(command_id)
 	{
@@ -146,6 +164,12 @@ unsigned char* SerialControl::send(unsigned char arguments[], string command, in
 		case 7: expected_reply_size = 9;
 				send_command(command_id, arguments, argument_length);
 				break;
+		case 9: return send_command(command_id, arguments, argument_length);
+				break;
+		case 10: execute_step();
+				return 0;
+		case 11: init_stand();
+				return 0;
 		default:expected_reply_size = 11 + arguments[2];
 				send_command(command_id, arguments, argument_length);
 				break;
@@ -153,6 +177,125 @@ unsigned char* SerialControl::send(unsigned char arguments[], string command, in
 
 	unsigned char* reply = read_serial(expected_reply_size);
 	return reply;
+}
+
+void SerialControl::execute_step()
+{
+	unsigned char transition_0[] = {
+			0x3C, 0x2A, 0x03, 0x04, 0x0B,
+			0x3C, 0x46, 0x03, 0x04, 0x0C,
+			0xB4, 0x96, 0x02, 0x04, 0x29,
+			0xB4, 0x07, 0x03, 0x04, 0x2A};
+	unsigned char step_0[] = { 0x3C,
+			0xCA, 0x02, 0x04, 0x0B,
+			0xCA, 0x02, 0x04, 0x0C};
+
+	unsigned char transition_1[] = {
+			0x3C, 0xD6, 0x00, 0x04, 0x15,
+			0x3C, 0xBA, 0x00, 0x04, 0x16,
+			0xB4, 0x96, 0x02, 0x04, 0x0B,
+			0xB4, 0x07, 0x03, 0x04, 0x0C};
+	unsigned char step_1[] = { 0x3C,
+			0x36, 0x01, 0x04, 0x15,
+			0x36, 0x01, 0x04, 0x16};
+
+	unsigned char transition_2[] = {
+			0x3C, 0xD6, 0x00, 0x04, 0x1F,
+			0x3C, 0xBA, 0x00, 0x04, 0x20,
+			0xB4, 0x76, 0x01, 0x04, 0x15,
+			0xB4, 0x07, 0x01, 0x04, 0x16};
+	unsigned char step_2[] = { 0x3C,
+			0x36, 0x01, 0x04, 0x1F,
+			0x36, 0x01, 0x04, 0x20};
+
+	unsigned char transition_3[] = {
+			0x3C, 0x2A, 0x03, 0x04, 0x29,
+			0x3C, 0x46, 0x03, 0x04, 0x2A,
+			0xB4, 0x76, 0x01, 0x04, 0x1F,
+			0xB4, 0x07, 0x01, 0x04, 0x20};
+	unsigned char step_3[] = { 0x3C,
+			0xCA, 0x02, 0x04, 0x29,
+			0xCA, 0x02, 0x04, 0x2A};
+
+	int time = 0x3C * 11.2 * 1000;
+
+	init_stand();
+
+	usleep(time);
+
+	for(int i = 0; i < 5; i++)
+	{
+		send_ijog(transition_0, 20);
+		usleep(time);
+		send_sjog(step_0, 9);
+		usleep(time);
+
+		send_ijog(transition_1, 20);
+		usleep(time);
+		send_sjog(step_1, 9);
+		usleep(time);
+
+		send_ijog(transition_2, 20);
+		usleep(time);
+		send_sjog(step_2, 9);
+		usleep(time);
+
+		send_ijog(transition_3, 20);
+		usleep(time);
+		send_sjog(step_3, 9);
+		usleep(time);
+	}
+
+	init_stand();
+}
+
+void SerialControl::init_stand()
+{
+	unsigned char stand[] = { 0x3C,
+				0x00, 0x02, 0x04, 0x1E, 0x76, 0x01, 0x04, 0x1F, 0x07, 0x01, 0x04, 0x20,
+				0x00, 0x02, 0x04, 0x0A, 0x96, 0x02, 0x04, 0x0B, 0x07, 0x03, 0x04, 0x0C,
+				0x00, 0x02, 0x04, 0x28, 0x96, 0x02, 0x04, 0x29, 0x07, 0x03, 0x04, 0x2A,
+				0x00, 0x02, 0x04, 0x14, 0x76, 0x01, 0x04, 0x15, 0x07, 0x01, 0x04, 0x16};
+	send_sjog(stand, 49);
+}
+
+void SerialControl::execute_turn()
+{
+	unsigned char transition_0[] = {
+				0x3C, 0x2A, 0x03, 0x04, 0x0B,
+				0x3C, 0x46, 0x03, 0x04, 0x0C,
+				0xB4, 0x96, 0x02, 0x04, 0x29,
+				0xB4, 0x07, 0x03, 0x04, 0x2A};
+	unsigned char step_0[] = { 0x3C,
+			0xCA, 0x02, 0x04, 0x0B,
+			0xCA, 0x02, 0x04, 0x0C};
+
+	unsigned char transition_1[] = {
+			0x3C, 0xD6, 0x00, 0x04, 0x15,
+			0x3C, 0xBA, 0x00, 0x04, 0x16,
+			0xB4, 0x96, 0x02, 0x04, 0x0B,
+			0xB4, 0x07, 0x03, 0x04, 0x0C};
+	unsigned char step_1[] = { 0x3C,
+			0x36, 0x01, 0x04, 0x15,
+			0x36, 0x01, 0x04, 0x16};
+
+	unsigned char transition_2[] = {
+			0x3C, 0xD6, 0x00, 0x04, 0x1F,
+			0x3C, 0xBA, 0x00, 0x04, 0x20,
+			0xB4, 0x76, 0x01, 0x04, 0x15,
+			0xB4, 0x07, 0x01, 0x04, 0x16};
+	unsigned char step_2[] = { 0x3C,
+			0x36, 0x01, 0x04, 0x1F,
+			0x36, 0x01, 0x04, 0x20};
+
+	unsigned char transition_3[] = {
+			0x3C, 0x2A, 0x03, 0x04, 0x29,
+			0x3C, 0x46, 0x03, 0x04, 0x2A,
+			0xB4, 0x76, 0x01, 0x04, 0x1F,
+			0xB4, 0x07, 0x01, 0x04, 0x20};
+	unsigned char step_3[] = { 0x3C,
+			0xCA, 0x02, 0x04, 0x29,
+			0xCA, 0x02, 0x04, 0x2A};
 }
 
 unsigned char* SerialControl::read_serial(int bytes_expected)
@@ -203,6 +346,12 @@ int SerialControl::find_command_id(string command)
 		return 9;
 	else if(command == "flsh")
 		flush_serial_port();
+	else if(command == "step")
+		return 10;
+	else if(command == "stnd")
+		return 11;
+	else if(command == "turn")
+		return 12;
 	else
 		return 0;
 	return 0;

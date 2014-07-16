@@ -100,7 +100,8 @@ unsigned char* ConnectionHandler::handleSerialCommand(char buffer[], int start_p
 	int command_length = constructBytes(buffer, command, start_pos, end_pos);
 	command[2] = command_length;
 
-	SerialControl::getInstance()->send_calc_checksum(command);
+	//SerialControl::getInstance()->send_calc_checksum(command);
+	reinterpret_cast<SerialControl *>(SerialControl::getInstance()->getThread());
 
 	// TODO trim the command. The command array may contain garbage. Needs to be filtered out, maybe separate arrays
 	// for each command to be sent separately or combined into a I/S_JOG command (advanced option). To separate the commands
