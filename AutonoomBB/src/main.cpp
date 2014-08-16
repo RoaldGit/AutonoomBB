@@ -12,6 +12,7 @@
 
 #include "communication/Server.h"
 #include "communication/SerialControl.h"
+#include "communication/I2CControl.h"
 
 using namespace std;
 
@@ -22,9 +23,11 @@ int main() {
 
 	SerialControl *serialTest = SerialControl::getInstance();
 
-	serialTest -> getThread();
+//	serialTest -> getThread();
 //	serialTest->setup();
 
+//	I2CControl *i2c = new I2CControl();
+//	i2c->test_read();
 	//sleep(20);
 	//server->stop();
 

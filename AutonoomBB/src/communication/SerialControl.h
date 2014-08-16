@@ -40,7 +40,7 @@ private:
 
 	void execute_step();
 	void init_stand();
-	void execute_turn()
+	void execute_turn();
 
 	unsigned char* read_serial(int bytes_expected);
 
